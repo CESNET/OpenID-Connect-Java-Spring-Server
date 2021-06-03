@@ -130,7 +130,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<spring.version>4.3.27.RELEASE</spring.version>
 		<spring-test.version>4.3.27.RELEASE</spring-test.version>
-		<spring-security.version>4.2.8.RELEASE</spring-security.version>
+		<spring-security.version>5.3.0.RELEASE</spring-security.version>
 		<spring-security-oauth2.version>2.4.1.RELEASE</spring-security-oauth2.version>
 		<jackson.version>2.11.0</jackson.version>
 		<jstl.version>1.2</jstl.version>
