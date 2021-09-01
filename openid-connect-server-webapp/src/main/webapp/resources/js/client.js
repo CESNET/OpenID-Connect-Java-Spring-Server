@@ -529,10 +529,8 @@ var ClientListView = Backbone.View.extend({
 		// togglePlaceholder)
 
 		_.each(this.filteredModel.models, function(client, index) {
-			var clientStat = this.getStat(client.get('clientId'));
 			var view = new ClientView({
 				model: client,
-				clientStat: clientStat,
 				systemScopeList: this.options.systemScopeList,
 				whiteList: this.options.whiteListList.getByClientId(client.get('clientId'))
 			});
