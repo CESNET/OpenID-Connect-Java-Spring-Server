@@ -10,6 +10,7 @@ import cz.muni.ics.oauth2.service.SystemScopeService;
 import cz.muni.ics.oidc.server.configurations.PerunOidcConfig;
 import cz.muni.ics.oidc.web.WebHtmlClasses;
 import cz.muni.ics.openid.connect.model.UserInfo;
+import cz.muni.ics.openid.connect.service.ScopeClaimTranslationService;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
