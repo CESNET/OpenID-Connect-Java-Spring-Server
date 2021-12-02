@@ -94,7 +94,7 @@
 		<servlet-api.version>2.5</servlet-api.version>
 		<jstl.version>1.2</jstl.version>
 		<jakarta-servlet-api.version>4.0.4</jakarta-servlet-api.version>
-		<jakarta-jstl.version>1.2.6</jakarta-jstl.version>
+		<jakarta-jstl.version>2.0.0</jakarta-jstl.version>
 
 		<!-- Eclipse -->
 		<eclipse-persistence.version>2.7.9</eclipse-persistence.version>
