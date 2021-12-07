@@ -91,7 +91,7 @@
 
 		<!-- Servlet -->
 		<glassfish-servlet.version>3.1.1</glassfish-servlet.version>
-		<glassfish-jstl.version>1.2.6</glassfish-jstl.version>
+		<glassfish-jstl.version>2.0.0</glassfish-jstl.version>
 
 		<!-- Eclipse -->
 		<javax-persistence-api.version>2.2</javax-persistence-api.version>
