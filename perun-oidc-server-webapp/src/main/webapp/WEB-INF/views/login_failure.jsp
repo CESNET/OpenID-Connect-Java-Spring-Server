@@ -16,20 +16,56 @@ pageContext.setAttribute("cssLinks", cssLinks);
 %>
 
 <spring:message code="login_failure_title" var="title"/>
-<t:header title="${title}" reqURL="${reqURL}" baseURL="${baseURL}"
-          cssLinks="${cssLinks}" theme="${theme}"/>
+<t:header title="${title}" reqURL="${reqURL}" baseURL="${baseURL}" cssLinks="${cssLinks}" theme="${theme}"/>
+
+<div id="head">
+    <h3><i class="glyphicon glyphicon-exclamation-sign text-danger"></i>${' '}<spring:message code="unhandled_exception"/></h3>
+</div>
 
 </div> <%-- header --%>
 
 <div id="content">
-    <div id="head">
-        <h1>${fn:escapeXml(langProps['login_failure_header'])}</h1>
+    <br>
+    <div>
+        <div class="row error-row">
+            <div class="col-md-3 font-weight-bold">
+                <strong><spring:message code="error_id"/>${':'}</strong>
+            </div>
+            <div class="col-md-9">
+                ${errorId}
+            </div>
+        </div>
+        <div class="row error-row">
+            <div class="col-md-3 font-weight-bold">
+                <strong><spring:message code="error_message"/>${':'}</strong>
+            </div>
+            <div class="col-md-9">
+                ${message}
+            </div>
+        </div>
+        <div class="row error-row">
+            <div class="col-md-3 font-weight-bold">
+                <strong><spring:message code="caused_by"/>${':'}</strong>
+            </div>
+            <div class="col-md-9">
+                ${causedBy}
+            </div>
+        </div>
     </div>
-    <div class="msg"><spring:message code="login_failure_msg"/></div>
-    <div class="msg"><spring:message code="login_failure_contact_us"/>${" "}
-        <a href="mailto:${contactMail}">${contactMail}</a>.
-    </div>
+    <br>
+    <a href="error/report?errorId=${errorId}">
+        <button type="button" class="btn btn-secondary"><spring:message code="send_error_report"/></button>
+    </a>
 </div>
+
 </div><!-- ENDWRAP -->
 
 <t:footer baseURL="${baseURL}" theme="${theme}"/>
+
+
+
+
+
+
+
+
