@@ -68,7 +68,7 @@
 		<!-- DEPENDENCY VERSIONS -->
 
 		<!-- Spring -->
-		<spring.version>4.3.30.RELEASE</spring.version>
+		<spring.version>5.3.15</spring.version>
 
 		<!-- Spring Security -->
 		<spring-security.version>4.2.20.RELEASE</spring-security.version>
