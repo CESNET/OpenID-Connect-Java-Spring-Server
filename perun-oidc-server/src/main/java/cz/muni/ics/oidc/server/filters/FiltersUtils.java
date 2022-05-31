@@ -317,12 +317,20 @@ public class FiltersUtils {
 	public static String fillStringMandatoryProperty(String propertyName,
 													 String filterName,
 													 AuthProcFilterParams params) {
-		String filled = params.getProperty(propertyName);
+		String filled = fillStringProperty(propertyName, params, null);
 
-		if (!StringUtils.hasText(filled)) {
+		if (filled == null) {
 			throw new IllegalArgumentException("No value configured for '" + propertyName + "' in filter " + filterName);
 		}
 
+		return filled;
+	}
+
+	public static String fillStringProperty(String propertyName, AuthProcFilterParams params, String defaultValue) {
+		String filled = params.getProperty(propertyName);
+		if (!StringUtils.hasText(filled)) {
+			return defaultValue;
+		}
 		return filled;
 	}
 
