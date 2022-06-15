@@ -116,7 +116,7 @@
 		<nimbus-jose-jwt.version>9.23</nimbus-jose-jwt.version>
 		<javax-annotation-api.version>1.3.2</javax-annotation-api.version>
 		<xml-bind-api.version>2.3.3</xml-bind-api.version>
-		<jaxb-runtime.version>2.3.6</jaxb-runtime.version>
+		<jaxb-runtime.version>4.0.0</jaxb-runtime.version>
 		<aspectjweaver.version>1.9.9.1</aspectjweaver.version>
 
 		<!-- BUILD -->
