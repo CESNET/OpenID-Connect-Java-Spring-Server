@@ -21,6 +21,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import cz.muni.ics.oauth2.service.SystemScopeService;
+import cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken;
 import cz.muni.ics.openid.connect.model.ApprovedSite;
 import cz.muni.ics.openid.connect.model.WhitelistedSite;
 import cz.muni.ics.openid.connect.request.ConnectRequestParameters;
@@ -37,6 +38,7 @@ import java.util.Set;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
@@ -114,7 +116,10 @@ public class TofuUserApprovalHandler implements UserApprovalHandler {
 	 */
 	@Override
 	public AuthorizationRequest checkForPreApproval(AuthorizationRequest authorizationRequest, Authentication userAuthentication) {
-
+		if (userAuthentication instanceof SamlAuthenticationExceptionAuthenticationToken) {
+			SamlAuthenticationExceptionAuthenticationToken exc = (SamlAuthenticationExceptionAuthenticationToken) userAuthentication;
+			throw exc.createOAuth2Exception();
+		}
 		//First, check database to see if the user identified by the userAuthentication has stored an approval decision
 
 		String userId = userAuthentication.getName();

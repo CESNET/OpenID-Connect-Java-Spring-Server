@@ -18,6 +18,8 @@
 package cz.muni.ics.openid.connect.request;
 
 
+import static cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken.ROLE_EXCEPTION;
+
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -37,6 +39,7 @@ import cz.muni.ics.jwt.signer.service.impl.ClientKeyCacheService;
 import cz.muni.ics.oauth2.model.ClientDetailsEntity;
 import cz.muni.ics.oauth2.model.PKCEAlgorithm;
 import cz.muni.ics.oauth2.service.ClientDetailsEntityService;
+import cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Collections;
@@ -44,10 +47,15 @@ import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.stereotype.Component;
 
@@ -149,6 +157,28 @@ public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
 		}
 
 		return request;
+	}
+
+	@Override
+	public OAuth2Request createOAuth2Request(AuthorizationRequest request) {
+		if (request.getAuthorities() != null && request.getAuthorities().contains(ROLE_EXCEPTION)) {
+			Authentication a = SecurityContextHolder.getContext().getAuthentication();
+			if (a instanceof SamlAuthenticationExceptionAuthenticationToken) {
+				throw ((SamlAuthenticationExceptionAuthenticationToken) a).createOAuth2Exception();
+			}
+		}
+		return super.createOAuth2Request(request);
+	}
+
+	@Override
+	public TokenRequest createTokenRequest(AuthorizationRequest authorizationRequest, String grantType) {
+		if (authorizationRequest.getAuthorities() != null && authorizationRequest.getAuthorities().contains(ROLE_EXCEPTION)) {
+			Authentication a = SecurityContextHolder.getContext().getAuthentication();
+			if (a instanceof SamlAuthenticationExceptionAuthenticationToken) {
+				throw ((SamlAuthenticationExceptionAuthenticationToken) a).createOAuth2Exception();
+			}
+		}
+		return super.createTokenRequest(authorizationRequest, grantType);
 	}
 
 	/**

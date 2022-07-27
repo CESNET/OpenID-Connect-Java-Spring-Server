@@ -99,7 +99,6 @@ public class FiltersUtils {
 	 * @param clientService service fetching client details
 	 * @return extracted client, null if some error occurs
 	 */
-	@SuppressWarnings("unchecked")
 	public static ClientDetailsEntity extractClientFromRequest(HttpServletRequest request,
 															   OAuth2RequestFactory authRequestFactory,
 															   ClientDetailsEntityService clientService)
@@ -199,11 +198,15 @@ public class FiltersUtils {
 	}
 
 	public static SAMLCredential getSamlCredential(HttpServletRequest request) {
-		ExpiringUsernameAuthenticationToken p = (ExpiringUsernameAuthenticationToken) request.getUserPrincipal();
-		if (p == null) {
+		if (request.getUserPrincipal() instanceof ExpiringUsernameAuthenticationToken) {
+			ExpiringUsernameAuthenticationToken p = (ExpiringUsernameAuthenticationToken) request.getUserPrincipal();
+			if (p == null) {
+				return null;
+			}
+			return (SAMLCredential) p.getCredentials();
+		} else {
 			return null;
 		}
-		return (SAMLCredential) p.getCredentials();
 	}
 
 	public static String getExtLogin(SAMLCredential credential, String idAttribute) {

@@ -251,7 +251,7 @@
                                 access="permitAll()"/>
         <security:intercept-url pattern="#{T(cz.muni.ics.oidc.web.controllers.LoginController).MAPPING_FAILURE}"
                                 access="permitAll()"/>
-        <security:intercept-url pattern="/**" access="hasRole('ROLE_USER')"/>
+        <security:intercept-url pattern="/**" access="hasAnyRole('ROLE_USER','ROLE_EXCEPTION')"/>
         <security:custom-filter ref="mdcFilter" before="FIRST"/>
         <security:custom-filter ref="metadataGeneratorFilter" before="CHANNEL_FILTER"/>
         <security:custom-filter ref="clearSessionFilter" after="CHANNEL_FILTER"/>

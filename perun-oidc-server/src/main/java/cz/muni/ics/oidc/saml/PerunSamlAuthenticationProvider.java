@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.saml.SAMLAuthenticationProvider;
 import org.springframework.security.saml.SAMLCredential;
 
@@ -24,6 +25,15 @@ public class PerunSamlAuthenticationProvider extends SAMLAuthenticationProvider 
             long l = Long.parseLong(id);
             this.adminIds.add(l);
             log.debug("added user {} as admin", l);
+        }
+    }
+
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        try {
+            return super.authenticate(authentication);
+        } catch (Exception e) {
+            return new SamlAuthenticationExceptionAuthenticationToken(e);
         }
     }
 

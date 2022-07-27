@@ -31,6 +31,7 @@ import cz.muni.ics.oauth2.model.ClientDetailsEntity;
 import cz.muni.ics.oauth2.model.SamlAuthenticationDetails;
 import cz.muni.ics.oauth2.model.SystemScope;
 import cz.muni.ics.oidc.models.PerunUser;
+import cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken;
 import cz.muni.ics.oidc.server.configurations.PerunOidcConfig;
 import cz.muni.ics.openid.connect.model.OIDCAuthenticationToken;
 import cz.muni.ics.openid.connect.model.UserInfo;
@@ -73,6 +74,9 @@ public class UserInfoInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth instanceof SamlAuthenticationExceptionAuthenticationToken) {
+			return true;
+		}
 
 		if (auth != null){
 			request.setAttribute("userAuthorities", gson.toJson(auth.getAuthorities()));

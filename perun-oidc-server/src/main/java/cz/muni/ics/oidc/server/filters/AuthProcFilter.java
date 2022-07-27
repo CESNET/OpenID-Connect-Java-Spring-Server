@@ -1,6 +1,7 @@
 package cz.muni.ics.oidc.server.filters;
 
 import cz.muni.ics.oidc.exceptions.ConfigurationException;
+import cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken;
 import cz.muni.ics.oidc.saml.SamlProperties;
 import java.io.IOException;
 import java.util.Arrays;
@@ -13,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Abstract class for Perun AuthProc filters. All filters defined and called in the
@@ -117,6 +120,10 @@ public abstract class AuthProcFilter {
         }
         log.debug("{} - marking filter as applied", filterName);
         req.getSession(true).setAttribute(getSessionAppliedParamName(), true);
+        Authentication a = SecurityContextHolder.getContext().getAuthentication();
+        if (a instanceof SamlAuthenticationExceptionAuthenticationToken) {
+            return true;
+        }
         String sub = FiltersUtils.getUserIdentifier(req, samlProperties.getUserIdentifierAttribute());
         String clientId = FiltersUtils.getClientId(req);
 
