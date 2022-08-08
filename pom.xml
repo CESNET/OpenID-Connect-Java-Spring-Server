@@ -100,7 +100,7 @@
 		<eclipse-persistence-jpa.version>${eclipse-persistence.version}</eclipse-persistence-jpa.version>
 
 		<!-- LDAP -->
-		<apache-ldap-api-all.version>2.1.0</apache-ldap-api-all.version>
+		<apache-ldap-api-all.version>2.1.1</apache-ldap-api-all.version>
 
 		<!-- Logging -->
 		<logback.version>1.2.11</logback.version>
