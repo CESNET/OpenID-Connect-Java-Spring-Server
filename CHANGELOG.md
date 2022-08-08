@@ -1,3 +1,11 @@
+## [10.1.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.0...v10.1.1) (2022-08-08)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.google.code.gson:gson to v2.9.1 ([9b42b50](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/9b42b50cc92d775eab13d3cbd8719d9ac16cf6dc))
+* **deps:** update dependency org.mariadb.jdbc:mariadb-java-client to v3.0.7 ([c27a5c5](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/c27a5c58bc8428c97a57f50292a640455807c34d))
+
 # [10.1.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.0.3...v10.1.0) (2022-07-28)
 
 
