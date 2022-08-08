@@ -1,3 +1,10 @@
+## [10.1.2](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.1...v10.1.2) (2022-08-08)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.apache.directory.api:api-all to v2.1.1 ([741e502](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/741e5027cc82d8fc282f716f760baf7cb5414fa3))
+
 ## [10.1.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.0...v10.1.1) (2022-08-08)
 
 
