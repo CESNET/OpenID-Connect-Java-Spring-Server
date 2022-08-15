@@ -22,6 +22,7 @@ package cz.muni.ics.oauth2.token;
 
 import cz.muni.ics.oauth2.service.SystemScopeService;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;

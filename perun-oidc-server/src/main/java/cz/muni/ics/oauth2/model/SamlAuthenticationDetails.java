@@ -180,7 +180,7 @@ public class SamlAuthenticationDetails {
             return;
         }
         if (value == null || "null".equalsIgnoreCase(value)) {
-            target.add(key, new JsonNull());
+            target.add(key, JsonNull.INSTANCE);
         } else {
             target.addProperty(key, value);
         }

@@ -55,7 +55,7 @@ public class SymmetricKeyJWTValidatorCacheService {
 		if (client == null) {
 			log.error("Couldn't create symmetric validator for null client");
 			return null;
-		} else if (StringUtils.isEmpty(client.getClientSecret())) {
+		} else if (!StringUtils.hasText(client.getClientSecret())) {
 			log.error("Couldn't create symmetric validator for client {} without a client secret", client.getClientId());
 			return null;
 		}

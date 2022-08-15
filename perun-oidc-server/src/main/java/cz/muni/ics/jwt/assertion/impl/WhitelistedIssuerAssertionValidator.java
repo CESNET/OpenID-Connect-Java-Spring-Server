@@ -56,7 +56,7 @@ public class WhitelistedIssuerAssertionValidator extends AbstractAssertionValida
 	@Override
 	public boolean isValid(JWT assertion) {
 		String issuer = extractIssuer(assertion);
-		if (StringUtils.isEmpty(issuer)) {
+		if (!StringUtils.hasText(issuer)) {
 			log.debug("No issuer for assertion, rejecting");
 			return false;
 		} else if (!whitelist.containsKey(issuer)) {

@@ -58,7 +58,7 @@ public class WebfingerURLNormalizer {
 		// try to parse the URI
 		// NOTE: we can't use the Java built-in URI class because it doesn't split the parts appropriately
 
-		if (StringUtils.isEmpty(identifier)) {
+		if (!StringUtils.hasText(identifier)) {
 			log.warn("Can't normalize null or empty URI: " + identifier);
 			return null;
 		} else {
@@ -70,7 +70,7 @@ public class WebfingerURLNormalizer {
 				builder.userInfo(m.group(6));
 				builder.host(m.group(8));
 				String port = m.group(10);
-				if (!StringUtils.isEmpty(port)) {
+				if (StringUtils.hasText(port)) {
 					builder.port(Integer.parseInt(port));
 				}
 				builder.path(m.group(11));

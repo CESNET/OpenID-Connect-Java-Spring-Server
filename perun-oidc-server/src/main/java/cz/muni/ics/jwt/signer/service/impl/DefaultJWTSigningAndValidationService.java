@@ -74,7 +74,7 @@ public class DefaultJWTSigningAndValidationService implements JWTSigningAndValid
 	public DefaultJWTSigningAndValidationService(JWKSetKeyStore keyStore) {
 		if (keyStore!= null && keyStore.getJwkSet() != null) {
 			for (JWK key : keyStore.getKeys()) {
-				if (!StringUtils.isEmpty(key.getKeyID())) {
+				if (StringUtils.hasText(key.getKeyID())) {
 					this.keys.put(key.getKeyID(), key);
 				} else {
 					String fakeKid = UUID.randomUUID().toString();

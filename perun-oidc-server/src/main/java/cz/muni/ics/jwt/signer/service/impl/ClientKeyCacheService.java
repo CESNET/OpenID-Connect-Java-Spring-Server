@@ -108,7 +108,7 @@ public class ClientKeyCacheService {
 		try {
 			if (client.getJwks() != null) {
 				return jwksEncrypters.get(client.getJwks());
-			} else if (!StringUtils.isEmpty(client.getJwksUri())) {
+			} else if (StringUtils.hasText(client.getJwksUri())) {
 				return jwksUriCache.getEncrypter(client.getJwksUri());
 			} else {
 				return null;
