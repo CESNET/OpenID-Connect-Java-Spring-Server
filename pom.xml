@@ -118,6 +118,7 @@
 		<xml-bind-api.version>2.3.3</xml-bind-api.version>
 		<jaxb-runtime.version>2.3.6</jaxb-runtime.version>
 		<aspectjweaver.version>1.9.9.1</aspectjweaver.version>
+		<sentry.version>6.3.1</sentry.version>
 
 		<!-- BUILD -->
 		<java.version>11</java.version>
@@ -327,6 +328,13 @@
 				<groupId>org.apache.directory.api</groupId>
 				<artifactId>api-all</artifactId>
 				<version>${apache-ldap-api-all.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.sentry</groupId>
+				<artifactId>sentry-bom</artifactId>
+				<version>${sentry.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

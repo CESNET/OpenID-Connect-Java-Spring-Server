@@ -23,6 +23,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import io.sentry.Sentry;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
@@ -77,7 +78,6 @@ public class JsonErrorView extends AbstractView {
 
 	@Override
 	protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
-
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
 
