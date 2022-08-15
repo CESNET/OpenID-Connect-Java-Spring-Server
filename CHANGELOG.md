@@ -1,3 +1,10 @@
+## [10.1.3](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.2...v10.1.3) (2022-08-15)
+
+
+### Bug Fixes
+
+* **deps:** update eclipse-persistence.version to v2.7.11 ([d85ea1c](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/d85ea1cb9600ec484c4347cc77737763e6de253d))
+
 ## [10.1.2](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.1...v10.1.2) (2022-08-08)
 
 
