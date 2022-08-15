@@ -1,3 +1,10 @@
+## [10.2.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.2.0...v10.2.1) (2022-08-15)
+
+
+### Bug Fixes
+
+* **deps:** update shedlock.version to v4.40.0 ([c597037](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/c597037ec98b03e034a84c55665079e73ce474cc))
+
 # [10.2.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.3...v10.2.0) (2022-08-15)
 
 
