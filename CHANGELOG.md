@@ -1,3 +1,10 @@
+# [10.2.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.3...v10.2.0) (2022-08-15)
+
+
+### Features
+
+* 🎸 Spring5 & Spring-security 5 ([3faa9a6](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/3faa9a68ba64c93558644d31e80f42c39cc38fd5))
+
 ## [10.1.3](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.1.2...v10.1.3) (2022-08-15)
 
 
