@@ -28,8 +28,6 @@ import org.springframework.util.StringUtils;
 @Converter
 public class JsonElementStringConverter implements AttributeConverter<JsonElement, String> {
 
-	private final JsonParser parser = new JsonParser();
-
 	@Override
 	public String convertToDatabaseColumn(JsonElement attribute) {
 		return attribute != null ? attribute.toString() : null;
@@ -37,7 +35,7 @@ public class JsonElementStringConverter implements AttributeConverter<JsonElemen
 
 	@Override
 	public JsonElement convertToEntityAttribute(String dbData) {
-		return !StringUtils.isEmpty(dbData) ? parser.parse(dbData) : null;
+		return StringUtils.hasText(dbData) ? JsonParser.parseString(dbData) : null;
 	}
 
 }

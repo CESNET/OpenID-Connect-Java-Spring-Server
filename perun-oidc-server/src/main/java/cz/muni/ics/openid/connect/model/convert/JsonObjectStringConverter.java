@@ -37,7 +37,7 @@ public class JsonObjectStringConverter implements AttributeConverter<JsonObject,
 
 	@Override
 	public JsonObject convertToEntityAttribute(String dbData) {
-		return !StringUtils.isEmpty(dbData) ? parser.parse(dbData).getAsJsonObject() : null;
+		return StringUtils.hasText(dbData) ? parser.parse(dbData).getAsJsonObject() : null;
 	}
 
 }

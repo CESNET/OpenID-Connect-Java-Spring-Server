@@ -247,8 +247,8 @@ public class BlacklistAwareRedirectResolver implements RedirectResolver {
 	 * @return true if strings are equal, false otherwise
 	 */
 	private boolean isEqual(String str1, String str2) {
-		if (StringUtils.isEmpty(str1)) {
-			return StringUtils.isEmpty(str2);
+		if (!StringUtils.hasText(str1)) {
+			return !StringUtils.hasText(str2);
 		} else {
 			return str1.equals(str2);
 		}

@@ -80,7 +80,7 @@ public class DefaultJWTEncryptionAndDecryptionService implements JWTEncryptionAn
 	 */
 	public DefaultJWTEncryptionAndDecryptionService(JWKSetKeyStore keyStore) throws JOSEException {
 		for (JWK key : keyStore.getKeys()) {
-			if (!StringUtils.isEmpty(key.getKeyID())) {
+			if (StringUtils.hasText(key.getKeyID())) {
 				this.keys.put(key.getKeyID(), key);
 			} else {
 				throw new IllegalArgumentException("Tried to load a key from a keystore without a 'kid' field: " + key);
