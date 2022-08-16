@@ -1,3 +1,10 @@
+# [10.3.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.2.1...v10.3.0) (2022-08-16)
+
+
+### Features
+
+* GA4GH ClaimSource by API call ([0753598](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/075359886e6c56b1ff5e3cefc2e1b12d381a4e38))
+
 ## [10.2.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.2.0...v10.2.1) (2022-08-15)
 
 
