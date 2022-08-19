@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.nimbusds.jose.shaded.json.JSONArray;
+import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import cz.muni.ics.oauth2.model.ClientDetailsEntity;
@@ -14,6 +14,7 @@ import cz.muni.ics.openid.connect.service.ScopeClaimTranslationService;
 import cz.muni.ics.openid.connect.service.UserInfoService;
 import cz.muni.ics.openid.connect.service.impl.DefaultOIDCTokenService;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -113,8 +114,8 @@ public class PerunOIDCTokenService extends DefaultOIDCTokenService {
 				return null;
 			}
 		} else if (jsonElement.isJsonArray()) {
-			JSONArray jsonArray = new JSONArray();
-			jsonElement.getAsJsonArray().forEach(je -> jsonArray.appendElement(gson2jsonsmart(je)));
+			List<Object> jsonArray = JSONArrayUtils.newJSONArray();
+			jsonElement.getAsJsonArray().forEach(je -> jsonArray.add(gson2jsonsmart(je)));
 			return jsonArray;
 		} else {
 			return null;
