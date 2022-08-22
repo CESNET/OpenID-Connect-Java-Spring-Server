@@ -1,3 +1,11 @@
+## [10.3.3](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.3.2...v10.3.3) (2022-08-22)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.postgresql:postgresql to v42.4.2 ([8fce861](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/8fce861d7dd4e93786cdd2778c39ef72753eb3bf))
+* **deps:** update shedlock.version to v4.41.0 ([2b60811](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/2b60811a5ac7c85ce6809932d0b69786285cbf27))
+
 ## [10.3.2](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.3.1...v10.3.2) (2022-08-20)
 
 
