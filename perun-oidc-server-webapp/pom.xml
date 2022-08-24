@@ -21,7 +21,7 @@
 	<parent>
 		<groupId>cz.muni.ics</groupId>
 		<artifactId>perun-oidc-parent</artifactId>
-		<version>10.3.3</version>
+		<version>10.3.4</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 

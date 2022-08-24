@@ -1,3 +1,10 @@
+## [10.3.4](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.3.3...v10.3.4) (2022-08-24)
+
+
+### Bug Fixes
+
+* 🐛 Allow calling /devicecode without client secret ([02d8d34](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/02d8d34fb1f6dae8ba29371768fa4c5a20338a0d))
+
 ## [10.3.3](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.3.2...v10.3.3) (2022-08-22)
 
 
