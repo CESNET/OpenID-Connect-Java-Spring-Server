@@ -311,7 +311,6 @@
                 <value>/introspect</value>
                 <value>/revoke</value>
                 <value>/token</value>
-                <value>/devicecode</value>
             </set>
         </constructor-arg>
     </bean>
