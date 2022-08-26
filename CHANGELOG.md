@@ -1,3 +1,10 @@
+# [10.4.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.3.4...v10.4.0) (2022-08-26)
+
+
+### Features
+
+* Integration with sentry ([219f31c](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/219f31c3fccd71f4f0754c5e2552a5d16148096a))
+
 ## [10.3.4](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.3.3...v10.3.4) (2022-08-24)
 
 
