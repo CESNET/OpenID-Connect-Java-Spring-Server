@@ -159,7 +159,16 @@
 			<groupId>javax.persistence</groupId>
 			<artifactId>javax.persistence-api</artifactId>
 		</dependency>
-	</dependencies>
+		<!-- SENTRY -->
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry-spring</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry-logback</artifactId>
+		</dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

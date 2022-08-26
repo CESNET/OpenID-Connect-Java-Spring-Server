@@ -121,8 +121,13 @@
 				<prop key="filter.stats.serviceProvidersMapTableName">statistics_sp</prop>
 				<prop key="filter.stats.idpIdColumnName">idpId</prop>
 				<prop key="filter.stats.spIdColumnName">spId</prop>
+				<prop key="sentry.config.location"/>
 			</props>
 		</property>
+	</bean>
+
+	<bean id="sentryConfiguration" class="cz.muni.ics.oidc.SentryConfiguration">
+		<constructor-arg name="perunOidcConfig" ref="perunOidcConfig"/>
 	</bean>
 
 	<bean id="coreProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
@@ -463,6 +468,7 @@
 		<property name="webClassesFilePath" value="${web.classes.path}"/>
 		<property name="emailContact" value="${email.contact}"/>
 		<property name="addClientIdToAcrs" value="${proxy.add_client_id_to_acrs}"/>
+		<property name="sentryConfigFileLocation" value="${sentry.config.location}"/>
 	</bean>
 
 	<bean id="facilityAttrsConfig" class="cz.muni.ics.oidc.server.configurations.FacilityAttrsConfig">

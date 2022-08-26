@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -53,6 +54,8 @@ public class PerunOidcConfig {
 	private String webClassesFilePath;
 	private String emailContact;
 	private String rpcEnabled;
+
+	private String sentryConfigFileLocation;
 
 	public void setRpcUrl(String rpcUrl) {
 		this.rpcUrl = rpcUrl;
@@ -239,6 +242,14 @@ public class PerunOidcConfig {
 		this.addClientIdToAcrs = addClientIdToAcrs;
 	}
 
+	public String getSentryConfigFileLocation() {
+		return sentryConfigFileLocation;
+	}
+
+	public void setSentryConfigFileLocation(String sentryConfigFileLocation) {
+		this.sentryConfigFileLocation = sentryConfigFileLocation;
+	}
+
 	@PostConstruct
 	public void postInit() {
 		//load URLs from properties if available or construct them from issuer URL
@@ -284,6 +295,7 @@ public class PerunOidcConfig {
 			log.info("Available languages: {}", languageMap.keySet());
 			log.info("Localization files path: {}", localizationFilesPath);
 			log.info("Email contact: {}", emailContact);
+			log.info("Sentry enabled: {}", StringUtils.hasText(sentryConfigFileLocation));
 			log.info("Perun OIDC version: {}", getPerunOIDCVersion());
 		}
 	}

@@ -23,6 +23,7 @@ package cz.muni.ics.openid.connect.view;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.view.AbstractView;
@@ -33,6 +34,7 @@ import org.springframework.web.servlet.view.AbstractView;
  *
  */
 @Component(HttpCodeView.VIEWNAME)
+@Slf4j
 public class HttpCodeView extends AbstractView {
 
 	public static final String VIEWNAME = "httpCodeView";
@@ -41,6 +43,7 @@ public class HttpCodeView extends AbstractView {
 
 	@Override
 	protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
+		log.debug("Handling");
 		HttpStatus code = (HttpStatus) model.get(CODE);
 		if (code == null) {
 			code = HttpStatus.OK; // default to 200

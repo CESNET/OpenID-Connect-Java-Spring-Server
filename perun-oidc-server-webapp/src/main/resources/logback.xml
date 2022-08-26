@@ -16,6 +16,8 @@
 		</encoder>
 	</appender>
 
+	<appender name="SENTRY" class="io.sentry.logback.SentryAppender" />
+
 	<!-- FILE -->
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
 		<file>${log.file}.${log.file-extension}</file>
@@ -34,6 +36,7 @@
 
 	<root level="${log.level}">
 		<appender-ref ref="${log.to}"/>
+		<appender-ref ref="SENTRY"/>
 	</root>
 
 	<!-- SPRING -->
@@ -51,6 +54,7 @@
 	<logger name="org.mariadb" level="warn"/>
 	<logger name="org.postgresql" level="warn"/>
 	<logger name="net.javacrumbs.shedlock" level="error"/>
+	<logger name="io.sentry" level="trace"/>
 
 	<!-- OUR LOGGERS -->
 	<!-- PASSED FROM POM.XML / MAVEN BUILD PROPS -->

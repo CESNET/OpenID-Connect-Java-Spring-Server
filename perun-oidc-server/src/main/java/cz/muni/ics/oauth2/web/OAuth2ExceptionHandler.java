@@ -16,6 +16,7 @@
 
 package cz.muni.ics.oauth2.web;
 
+import io.sentry.Sentry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,13 +35,25 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 public class OAuth2ExceptionHandler {
 
+	private final WebResponseExceptionTranslator<OAuth2Exception> providerExceptionHandler;
+
 	@Autowired
-	private WebResponseExceptionTranslator providerExceptionHandler;
+	public OAuth2ExceptionHandler(WebResponseExceptionTranslator<OAuth2Exception> providerExceptionHandler) {
+		this.providerExceptionHandler = providerExceptionHandler;
+	}
 
 	@ExceptionHandler(OAuth2Exception.class)
 	public ResponseEntity<OAuth2Exception> handleException(Exception e) throws Exception {
 		log.info("Handling error: " + e.getClass().getSimpleName() + ", " + e.getMessage());
+		Sentry.captureException(e);
 		return providerExceptionHandler.translate(e);
+	}
+
+	@ExceptionHandler(Exception.class)
+	public void sentryHandleException(Exception e) throws Exception {
+		log.info("Handling error: {}", e.getMessage(), e);
+		Sentry.captureException(e);
+		throw e;
 	}
 
 }
