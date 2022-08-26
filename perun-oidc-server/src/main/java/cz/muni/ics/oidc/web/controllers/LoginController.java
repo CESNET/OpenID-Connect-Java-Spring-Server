@@ -2,6 +2,8 @@ package cz.muni.ics.oidc.web.controllers;
 
 import cz.muni.ics.oidc.server.configurations.PerunOidcConfig;
 import cz.muni.ics.oidc.web.WebHtmlClasses;
+import cz.muni.ics.openid.connect.view.HttpCodeView;
+import cz.muni.ics.openid.connect.view.JsonErrorView;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.ws.message.encoder.MessageEncodingException;
 import org.opensaml.xml.util.XMLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -62,7 +65,11 @@ public class LoginController {
 			if (exc != null) {
 				String code = exc.getStatusCode();
 				if (StatusCode.NO_AUTHN_CONTEXT_URI.equalsIgnoreCase(code)) {
-					model.put(KEY_ERROR_MSG, "login_failure.no_authn_context.msg");
+					model.put(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
+					model.put(JsonErrorView.ERROR, "unmet_authentication_requirements");
+					model.put(JsonErrorView.ERROR_MESSAGE, "Cannot log in. MFA has been requested and not performed");
+					return JsonErrorView.VIEWNAME;
+					//model.put(KEY_ERROR_MSG, "login_failure.no_authn_context.msg");
 				}
 			}
 		}
