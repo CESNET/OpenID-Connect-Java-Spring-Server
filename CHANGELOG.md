@@ -1,3 +1,10 @@
+# [10.5.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.4.0...v10.5.0) (2022-08-26)
+
+
+### Features
+
+* return error response on noAuthnContext ([7d1f731](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/7d1f73104e123eb5b0ad87eb37bc0eb46b0e65bd))
+
 # [10.4.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.3.4...v10.4.0) (2022-08-26)
 
 
