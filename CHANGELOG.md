@@ -1,3 +1,12 @@
+## [10.5.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.0...v10.5.1) (2022-08-29)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.nimbusds:nimbus-jose-jwt to v9.24.3 ([fa7e1e0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/fa7e1e0ddb4b65495b0080c784e197bfe54ce95c))
+* **deps:** update dependency io.sentry:sentry-bom to v6.4.0 ([20caf2a](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/20caf2ac243d7b458e77c146c4852ea35685af2b))
+* **deps:** update dependency org.postgresql:postgresql to v42.5.0 ([e534f7b](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/e534f7b0c8b884aa18e64d08ac522e9061361cf2))
+
 # [10.5.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.4.0...v10.5.0) (2022-08-26)
 
 
