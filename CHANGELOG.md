@@ -1,3 +1,10 @@
+## [10.5.2](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.1...v10.5.2) (2022-09-01)
+
+
+### Bug Fixes
+
+* **deps:** update logback.version to v1.4.0 ([078a813](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/078a81323fdc8da2fc91bf93eb0d9c8331baf29e))
+
 ## [10.5.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.0...v10.5.1) (2022-08-29)
 
 
