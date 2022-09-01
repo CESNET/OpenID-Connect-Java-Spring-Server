@@ -299,3 +299,173 @@ CREATE TABLE IF NOT EXISTS device_code_request_parameter (
     param VARCHAR(2048),
     val VARCHAR(2048)
 );
+
+alter table access_token
+    add constraint access_token_authentication_holder_id_fk
+        foreign key (auth_holder_id) references authentication_holder (id)
+            on update cascade on delete set null;
+
+alter table access_token
+    add constraint access_token_client_details_id_fk
+        foreign key (client_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table access_token
+    add constraint access_token_refresh_token_id_fk
+        foreign key (refresh_token_id) references refresh_token (id)
+            on update cascade on delete set null;
+
+alter table approved_site
+    add constraint approved_site_client_details_id_fk
+        foreign key (client_id) references client_details (client_id)
+            on update cascade on delete cascade;
+
+alter table approved_site_scope
+    add constraint approved_site_scope_approved_site_id_fk
+        foreign key (owner_id) references approved_site (id)
+            on update cascade on delete cascade;
+
+alter table authentication_holder_authority
+    add constraint authentication_holder_authority_authentication_holder_id_fk
+        foreign key (owner_id) references authentication_holder (id)
+            on update cascade on delete cascade;
+
+alter table authentication_holder_extension
+    add constraint authentication_holder_extension_authentication_holder_id_fk
+        foreign key (owner_id) references authentication_holder (id)
+            on update cascade on delete cascade;
+
+alter table authentication_holder_request_parameter
+    add constraint auth_holder_request_parameter_authentication_holder_id_fk
+        foreign key (owner_id) references authentication_holder (id)
+            on update cascade on delete cascade;
+
+alter table authentication_holder_resource_id
+    add constraint authentication_holder_resource_id_authentication_holder_id_fk
+        foreign key (owner_id) references authentication_holder (id)
+            on update cascade on delete cascade;
+
+alter table authentication_holder_response_type
+    add constraint authentication_holder_response_type_authentication_holder_id_fk
+        foreign key (owner_id) references authentication_holder (id)
+            on update cascade on delete cascade;
+
+alter table authentication_holder
+    add constraint authentication_holder_saved_user_auth_id_fk
+        foreign key (user_auth_id) references saved_user_auth (id)
+            on update cascade on delete cascade;
+
+alter table authentication_holder_scope
+    add constraint authentication_holder_scope_authentication_holder_id_fk
+        foreign key (owner_id) references authentication_holder (id)
+            on update cascade on delete cascade;
+
+alter table authorization_code
+    add constraint authorization_code_authentication_holder_id_fk
+        foreign key (auth_holder_id) references authentication_holder (id)
+            on update cascade on delete cascade;
+
+alter table client_authority
+    add constraint client_authority_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_claims_redirect_uri
+    add constraint client_claims_redirect_uri_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_contact
+    add constraint client_contact_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_default_acr_value
+    add constraint client_default_acr_value_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_grant_type
+    add constraint client_grant_type_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_post_logout_redirect_uri
+    add constraint client_post_logout_redirect_uri_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_redirect_uri
+    add constraint client_redirect_uri_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_request_uri
+    add constraint client_request_uri_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_resource
+    add constraint client_resource_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_response_type
+    add constraint client_response_type_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table client_scope
+    add constraint client_scope_client_details_id_fk
+        foreign key (owner_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table device_code
+    add constraint device_code_client_details_id_fk
+        foreign key (client_id) references client_details (client_id)
+            on update cascade on delete cascade;
+
+alter table device_code
+    add constraint device_code_authentication_holder_id_fk
+        foreign key (auth_holder_id) references authentication_holder (id)
+            on update cascade on delete set null;
+
+alter table device_code_request_parameter
+    add constraint device_code_request_parameter_device_code_id_fk
+        foreign key (owner_id) references device_code (id)
+            on update cascade on delete cascade;
+
+alter table device_code_scope
+    add constraint device_code_scope_device_code_id_fk
+        foreign key (owner_id) references device_code (id)
+            on update cascade on delete cascade;
+
+alter table refresh_token
+    add constraint refresh_token_authentication_holder_id_fk
+        foreign key (auth_holder_id) references authentication_holder (id)
+            on update cascade on delete set null;
+
+alter table refresh_token
+    add constraint refresh_token_client_details_id_fk
+        foreign key (client_id) references client_details (id)
+            on update cascade on delete cascade;
+
+alter table saved_user_auth_authority
+    add constraint saved_user_auth_authority_saved_user_auth_id_fk
+        foreign key (owner_id) references saved_user_auth (id)
+            on update cascade on delete cascade;
+
+alter table token_scope
+    add constraint token_scope_refresh_token_id_fk
+        foreign key (owner_id) references access_token (id)
+            on update cascade on delete cascade;
+
+alter table whitelisted_site
+    add constraint whitelisted_site_client_details_id_fk
+        foreign key (client_id) references client_details (client_id)
+            on update cascade on delete cascade;
+
+alter table whitelisted_site_scope
+    add constraint whitelisted_site_scope_whitelisted_site_id_fk
+        foreign key (owner_id) references whitelisted_site (id)
+            on update cascade on delete cascade;
