@@ -23,11 +23,14 @@ import static cz.muni.ics.oauth2.model.DeviceCode.QUERY_BY_DEVICE_CODE;
 import static cz.muni.ics.oauth2.model.DeviceCode.QUERY_BY_USER_CODE;
 import static cz.muni.ics.oauth2.model.DeviceCode.QUERY_EXPIRED_BY_DATE;
 
+import cz.muni.ics.oauth2.model.convert.ExtendedOAuth2ExceptionConverter;
+import cz.muni.ics.oidc.saml.ExtendedOAuth2Exception;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -120,6 +123,10 @@ public class DeviceCode {
 	@ManyToOne
 	@JoinColumn(name = "auth_holder_id")
 	private AuthenticationHolderEntity authenticationHolder;
+
+	@Column(name = "recorded_error")
+	@Convert(converter = ExtendedOAuth2ExceptionConverter.class)
+	private ExtendedOAuth2Exception error;
 
 	public DeviceCode(String deviceCode,
 					  String userCode,

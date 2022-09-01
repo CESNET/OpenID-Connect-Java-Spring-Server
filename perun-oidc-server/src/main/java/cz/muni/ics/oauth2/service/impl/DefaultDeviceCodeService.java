@@ -16,12 +16,16 @@
 
 package cz.muni.ics.oauth2.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.muni.ics.data.AbstractPageOperationTemplate;
 import cz.muni.ics.oauth2.model.AuthenticationHolderEntity;
 import cz.muni.ics.oauth2.model.ClientDetailsEntity;
 import cz.muni.ics.oauth2.model.DeviceCode;
 import cz.muni.ics.oauth2.repository.impl.DeviceCodeRepository;
 import cz.muni.ics.oauth2.service.DeviceCodeService;
+import cz.muni.ics.oidc.saml.ExtendedOAuth2Exception;
+import cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -153,4 +157,10 @@ public class DefaultDeviceCodeService implements DeviceCodeService {
 
 	}
 
+	@Override
+	public void addErrorToCode(String userCode, ExtendedOAuth2Exception exc) {
+		DeviceCode deviceCode = lookUpByUserCode(userCode);
+		deviceCode.setError(exc);
+		repository.save(deviceCode);
+	}
 }
