@@ -31,8 +31,11 @@ public class PerunSamlAuthenticationProvider extends SAMLAuthenticationProvider 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         try {
+            log.debug("Trying authentication");
             return super.authenticate(authentication);
         } catch (Exception e) {
+            log.debug("Caught exception while authentication. Converting to " +
+                    "SamlAuthenticationExceptionAuthenticationToken for translation", e);
             return new SamlAuthenticationExceptionAuthenticationToken(e);
         }
     }

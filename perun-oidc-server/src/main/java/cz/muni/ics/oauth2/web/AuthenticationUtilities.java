@@ -17,10 +17,17 @@
 package cz.muni.ics.oauth2.web;
 
 import com.google.common.collect.ImmutableSet;
+import cz.muni.ics.oauth2.model.ClientDetailsEntity;
+import cz.muni.ics.oidc.models.Facility;
+import cz.muni.ics.oidc.models.PerunAttributeValue;
+import cz.muni.ics.oidc.server.adapters.PerunAdapter;
+import java.util.Locale;
+import java.util.Set;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.util.StringUtils;
 
 /**
  *
@@ -30,6 +37,9 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
  *
  */
 public abstract class AuthenticationUtilities {
+
+	public static final Set<String> EU_EAA = Set.of("AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE",
+			"EL", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "RO", "SK", "SI", "ES", "SE", "NO", "IS", "LI", "GB");
 
 	/**
 	 * Makes sure the authentication contains the given scope, throws an exception otherwise
@@ -71,6 +81,38 @@ public abstract class AuthenticationUtilities {
 		}
 		return false;
 
+	}
+
+	public static String getJurisdiction(ClientDetailsEntity client) {
+		if (!StringUtils.hasText(client.getJurisdiction()) || EU_EAA.contains(client.getJurisdiction())) {
+			return "";
+		} else if (client.getJurisdiction().length() > 2) {
+			if ("EMBL".equalsIgnoreCase(client.getJurisdiction())) {
+				return "EMBL";
+			}
+			return "INT";
+		}
+
+		Locale l = new Locale("", client.getJurisdiction());
+		return l.getDisplayCountry() + " (" + l.getISO3Country() + ")";
+	}
+
+	public static boolean isTestSp(ClientDetailsEntity client, PerunAdapter perunAdapter, String testSpAttrName) {
+		if (client == null || !StringUtils.hasText(client.getClientId())) {
+			return true;
+		}
+		Facility facility = perunAdapter.getFacilityByClientId(client.getClientId());
+		if (facility == null || facility.getId() == null) {
+			return true;
+		}
+
+		PerunAttributeValue attrValue = perunAdapter.getFacilityAttributeValue(facility.getId(), testSpAttrName);
+		if (attrValue == null) {
+			return false;
+		} else if (attrValue.valueAsBoolean()) {
+			return attrValue.valueAsBoolean();
+		}
+		return false;
 	}
 
 }

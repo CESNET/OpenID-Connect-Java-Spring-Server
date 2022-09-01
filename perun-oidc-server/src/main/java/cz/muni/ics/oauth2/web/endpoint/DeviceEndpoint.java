@@ -16,6 +16,9 @@
 
 package cz.muni.ics.oauth2.web.endpoint;
 
+import static cz.muni.ics.oidc.saml.ExtendedOAuth2Exception.ERROR_UNMET_AUTHENTICATION_REQUIREMENTS;
+import static cz.muni.ics.oidc.server.PerunOIDCTokenService.SESSION_PARAM_ACR;
+
 import cz.muni.ics.oauth2.exception.DeviceCodeCreationException;
 import cz.muni.ics.oauth2.model.ClientDetailsEntity;
 import cz.muni.ics.oauth2.model.ClientWithScopes;
@@ -24,10 +27,12 @@ import cz.muni.ics.oauth2.service.ClientDetailsEntityService;
 import cz.muni.ics.oauth2.service.DeviceCodeService;
 import cz.muni.ics.oauth2.service.SystemScopeService;
 import cz.muni.ics.oauth2.token.DeviceTokenGranter;
-import cz.muni.ics.oidc.models.Facility;
-import cz.muni.ics.oidc.models.PerunAttributeValue;
+import cz.muni.ics.oauth2.web.AuthenticationUtilities;
+import cz.muni.ics.oidc.saml.ExtendedOAuth2Exception;
+import cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken;
 import cz.muni.ics.oidc.saml.SamlPrincipal;
 import cz.muni.ics.oidc.server.adapters.PerunAdapter;
+import cz.muni.ics.oidc.server.configurations.FacilityAttrsConfig;
 import cz.muni.ics.oidc.server.configurations.PerunOidcConfig;
 import cz.muni.ics.oidc.server.userInfo.PerunUserInfo;
 import cz.muni.ics.oidc.web.WebHtmlClasses;
@@ -41,7 +46,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -70,12 +74,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 
 /**
- * Implements https://tools.ietf.org/html/draft-ietf-oauth-device-flow
+ * Implements <a href="https://tools.ietf.org/html/draft-ietf-oauth-device-flow">OAUTH Device Flow</a>
  *
  * @see DeviceTokenGranter
- *
  * @author jricher
  * @author Dominik Baranek (baranek@ics.muni.cz)
+ * @author Dominik Frantisek Bucik <bucik@ics.muni.cz>
  */
 @Controller
 @Slf4j
@@ -88,6 +92,8 @@ public class DeviceEndpoint {
 	public static final String THEMED_APPROVE_DEVICE = "themedApproveDevice";
 	public static final String DEVICE_APPROVED = "deviceApproved";
 	public static final String THEMED_DEVICE_APPROVED = "themedDeviceApproved";
+
+	public static final String DEVICE_FLOW_ERROR_VIEW = "device_flow_error";
 
 	// response keys
 	public static final String DEVICE_CODE = "device_code";
@@ -129,8 +135,7 @@ public class DeviceEndpoint {
 	public static final String CHECK_USER_CODE_URL = "/auth/device/authorize";
 	public static final String DEVICE_APPROVED_URL = "/auth/device/approved";
 
-	public static final Set<String> euEaa = Set.of("AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "EL", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "RO", "SK", "SI", "ES", "SE", "NO", "IS", "LI", "GB");
-
+	// === VARIABLES ===
 	private final ClientDetailsEntityService clientService;
 	private final SystemScopeService scopeService;
 	private final DeviceCodeService deviceCodeService;
@@ -139,8 +144,9 @@ public class DeviceEndpoint {
 	private final WebHtmlClasses htmlClasses;
 	private final ScopeClaimTranslationService scopeClaimTranslationService;
 	private final UserInfoService userInfoService;
-
 	private final PerunAdapter perunAdapter;
+
+	private final FacilityAttrsConfig facilityAttrsConfig;
 
 	@Autowired
 	public DeviceEndpoint(ClientDetailsEntityService clientService,
@@ -151,7 +157,8 @@ public class DeviceEndpoint {
 						  WebHtmlClasses htmlClasses,
 						  ScopeClaimTranslationService scopeClaimTranslationService,
 						  UserInfoService userInfoService,
-						  PerunAdapter perunAdapter)
+						  PerunAdapter perunAdapter,
+						  FacilityAttrsConfig facilityAttrsConfig)
 	{
 		this.clientService = clientService;
 		this.scopeService = scopeService;
@@ -162,6 +169,7 @@ public class DeviceEndpoint {
 		this.scopeClaimTranslationService = scopeClaimTranslationService;
 		this.userInfoService = userInfoService;
 		this.perunAdapter = perunAdapter;
+		this.facilityAttrsConfig = facilityAttrsConfig;
 	}
 
 	@PostMapping(value = ENDPOINT_URL, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -169,7 +177,7 @@ public class DeviceEndpoint {
 	public String requestDeviceCode(@RequestParam(CLIENT_ID) String clientId,
 									@RequestParam(name = SCOPE, required = false) String scope,
 									@RequestParam(name = ACR_VALUES, required = false) String acrValues,
-									Map<String, String> parameters,
+									@RequestParam Map<String, String> parameters,
 									ModelMap model)
 	{
 		ClientWithScopes clientWithScopes = new ClientWithScopes();
@@ -231,25 +239,34 @@ public class DeviceEndpoint {
 		return view;
 	}
 
-	@PreAuthorize("hasRole('ROLE_USER')")
+	@PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_EXCEPTION')")
 	@GetMapping(value = REQUEST_USER_CODE_URL)
 	public String requestUserCode(@RequestParam(value = USER_CODE, required = false) String userCode,
 								  HttpServletRequest req,
-								  ModelMap model)
+								  Map<String, Object> model,
+								  Authentication userAuthentication)
 	{
+		if (userAuthentication instanceof SamlAuthenticationExceptionAuthenticationToken) {
+			return handleAuthException(model, req, convertTokenToException(userAuthentication), userCode);
+		}
+
 		if (perunOidcConfig.getConfigBean().isAllowCompleteDeviceCodeUri() && StringUtils.hasText(userCode)) {
-			return verifyUserCode(userCode, req, model);
+			return verifyUserCode(userCode, req, model, userAuthentication);
 		} else {
 			return getRequestUserCodeViewName(req, model);
 		}
 	}
 
-	@PreAuthorize("hasRole('ROLE_USER')")
+	@PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_EXCEPTION')")
 	@PostMapping(value = REQUEST_USER_CODE_URL)
 	public String verifyUserCode(@RequestParam(value = USER_CODE) String userCode,
 								 HttpServletRequest req,
-								 ModelMap model)
+								 Map<String, Object> model,
+								 Authentication userAuthentication)
 	{
+		if (userAuthentication instanceof SamlAuthenticationExceptionAuthenticationToken) {
+			return handleAuthException(model, req, convertTokenToException(userAuthentication), userCode);
+		}
 		model.put(USER_CODE, userCode);
 
 		DeviceCode dc = deviceCodeService.lookUpByUserCode(userCode);
@@ -262,16 +279,30 @@ public class DeviceEndpoint {
 		HttpSession session = req.getSession();
 		session.setAttribute(DEVICE_CODE_SESSION_ATTRIBUTE, dc);
 
+		if (dc.getRequestParameters() != null && dc.getRequestParameters().containsKey(ACR_VALUES)) {
+			String requestedAcrs = dc.getRequestParameters().get(ACR_VALUES);
+			String achievedAcrs = "";
+			if (session.getAttribute(SESSION_PARAM_ACR) != null) {
+				achievedAcrs = (String) session.getAttribute(SESSION_PARAM_ACR);
+			}
+			if (!compareAcrs(requestedAcrs, achievedAcrs)) {
+				return handleAcrsException(model, req, userCode, requestedAcrs, achievedAcrs);
+			}
+		}
+
 		return "redirect:" + CHECK_USER_CODE_URL + '?' + USER_CODE + '=' + userCode;
 	}
 
-	@PreAuthorize("hasRole('ROLE_USER')")
+	@PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_EXCEPTION')")
 	@GetMapping(value = CHECK_USER_CODE_URL)
 	public String startApproveDevice(@RequestParam(USER_CODE) String userCode,
 									 ModelMap model,
 									 Authentication auth,
 									 HttpServletRequest req)
 	{
+		if (auth instanceof SamlAuthenticationExceptionAuthenticationToken) {
+			return handleAuthException(model, req, convertTokenToException(auth), userCode);
+		}
 		DeviceCode dc = deviceCodeService.lookUpByUserCode(userCode);
 		model.put(USER_CODE, userCode);
 
@@ -294,7 +325,7 @@ public class DeviceEndpoint {
 		return getApproveDeviceViewName(model, p, req, dc);
 	}
 
-	@PreAuthorize("hasRole('ROLE_USER')")
+	@PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_EXCEPTION')")
 	@PostMapping(value = DEVICE_APPROVED_URL)
 	public String processApproveDevice(@RequestParam(USER_CODE) String userCode,
 									   @RequestParam(value = USER_OAUTH_APPROVAL) Boolean approve,
@@ -302,6 +333,9 @@ public class DeviceEndpoint {
 									   ModelMap model,
 									   Authentication auth)
 	{
+		if (auth instanceof SamlAuthenticationExceptionAuthenticationToken) {
+			return handleAuthException(model, req, convertTokenToException(auth), userCode);
+		}
 		HttpSession session = req.getSession();
 		AuthorizationRequest authorizationRequest = (AuthorizationRequest) session.getAttribute(AUTHORIZATION_REQUEST);
 		if (authorizationRequest == null) {
@@ -384,52 +418,47 @@ public class DeviceEndpoint {
 		return null;
 	}
 
-	private String checkDeviceCodeIsValid(DeviceCode dc, HttpServletRequest req, ModelMap model) {
+	private String checkDeviceCodeIsValid(DeviceCode dc, HttpServletRequest req, Map<String, Object> model) {
 		// we couldn't find the device code
 		if (dc == null) {
-			model.addAttribute(ERROR, NO_USER_CODE);
+			model.put(ERROR, NO_USER_CODE);
 			return getRequestUserCodeViewName(req, model);
 		}
 
 		// make sure the code hasn't expired yet
 		if (dc.getExpiration() != null && dc.getExpiration().before(new Date())) {
-			model.addAttribute(ERROR, EXPIRED_USER_CODE);
+			model.put(ERROR, EXPIRED_USER_CODE);
 			return getRequestUserCodeViewName(req, model);
 		}
 
 		// make sure the device code hasn't already been approved
 		if (dc.isApproved()) {
-			model.addAttribute(ERROR, USER_CODE_ALREADY_APPROVED);
+			model.put(ERROR, USER_CODE_ALREADY_APPROVED);
 			return getRequestUserCodeViewName(req, model);
 		}
 
 		return null;
 	}
 
-	private String getRequestUserCodeViewName(HttpServletRequest req, ModelMap model) {
+	private String getRequestUserCodeViewName(HttpServletRequest req, Map<String, Object> model) {
+		return getViewName(req, model, REQUEST_USER_CODE, THEMED_REQUEST_USER_CODE);
+	}
+
+	private String getViewName(HttpServletRequest req, Map<String, Object> model, String viewName, String themedViewName) {
 		if (perunOidcConfig.getTheme().equalsIgnoreCase(DEFAULT)) {
-			return REQUEST_USER_CODE;
+			return viewName;
 		}
 
 		ControllerUtils.setPageOptions(model, req, htmlClasses, perunOidcConfig);
-		model.put(PAGE, REQUEST_USER_CODE);
+		model.put(PAGE, viewName);
 		if (perunOidcConfig.getTheme().equalsIgnoreCase("lsaai")) {
-			return "lsaai/" + THEMED_REQUEST_USER_CODE;
+			return "lsaai/" + themedViewName;
 		}
-		return THEMED_REQUEST_USER_CODE;
+		return themedViewName;
 	}
 
 	private String getDeviceApprovedViewName(HttpServletRequest req, ModelMap model) {
-		if (perunOidcConfig.getTheme().equalsIgnoreCase(DEFAULT)) {
-			return DEVICE_APPROVED;
-		}
-
-		ControllerUtils.setPageOptions(model, req, htmlClasses, perunOidcConfig);
-		model.put(PAGE, DEVICE_APPROVED);
-		if (perunOidcConfig.getTheme().equalsIgnoreCase("lsaai")) {
-			return "lsaai/" + THEMED_DEVICE_APPROVED;
-		}
-		return THEMED_DEVICE_APPROVED;
+		return getViewName(req, model, DEVICE_APPROVED, THEMED_DEVICE_APPROVED);
 	}
 
 	private String getApproveDeviceViewName(ModelMap model, SamlPrincipal p, HttpServletRequest req, DeviceCode dc) {
@@ -453,43 +482,11 @@ public class DeviceEndpoint {
 		model.put(PAGE, APPROVE_DEVICE);
 		if (perunOidcConfig.getTheme().equalsIgnoreCase("lsaai")) {
 			model.put("getsOfflineAccess", dc.getScope().contains("offline_access"));
-			model.put("jurisdiction", getJurisdiction(client));
-			model.put("isTestSp", isTestSp(client));
+			model.put("jurisdiction", AuthenticationUtilities.getJurisdiction(client));
+			model.put("isTestSp", AuthenticationUtilities.isTestSp(client, perunAdapter, facilityAttrsConfig.getTestSpAttr()));
 			return "lsaai/" + APPROVE_DEVICE;
 		}
 		return THEMED_APPROVE_DEVICE;
-	}
-
-	private boolean isTestSp(ClientDetailsEntity client) {
-		if (client == null || !StringUtils.hasText(client.getClientId())) {
-			return true;
-		}
-		Facility facility = perunAdapter.getFacilityByClientId(client.getClientId());
-		if (facility == null || facility.getId() == null) {
-			return true;
-		}
-
-		PerunAttributeValue attrValue = perunAdapter.getFacilityAttributeValue(facility.getId(), "urn:perun:facility:attribute-def:def:isTestSp");
-		if (attrValue == null) {
-			return false;
-		} else if (attrValue.valueAsBoolean()) {
-			return attrValue.valueAsBoolean();
-		}
-		return false;
-	}
-
-	private String getJurisdiction(ClientDetailsEntity client) {
-		if (!StringUtils.hasText(client.getJurisdiction()) || euEaa.contains(client.getJurisdiction())) {
-			return "";
-		} else if (client.getJurisdiction().length() > 2) {
-			if ("EMBL".equalsIgnoreCase(client.getJurisdiction())) {
-				return "EMBL";
-			}
-			return "INT";
-		}
-
-		Locale l = new Locale("", client.getJurisdiction());
-		return l.getDisplayCountry() + " (" + l.getISO3Country() + ")";
 	}
 
 	private String constructVerificationURI(String uri, Map<String, String> params) throws URISyntaxException {
@@ -503,4 +500,54 @@ public class DeviceEndpoint {
 		}
 		return builder.build().toString();
 	}
+
+	private boolean compareAcrs(String allRequestedAcrs, String allAchievedAcrs) {
+		if (!StringUtils.hasText(allRequestedAcrs)) {
+			return true;
+		} else if (!StringUtils.hasText(allAchievedAcrs)) {
+			allAchievedAcrs = "";
+		}
+		String[] achievedAcrs = allAchievedAcrs.split(" ");
+		if (achievedAcrs.length == 0) {
+			return !StringUtils.hasText(allRequestedAcrs);
+		}
+		for (String acr: achievedAcrs) {
+			if (allRequestedAcrs.contains(acr)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private ExtendedOAuth2Exception convertTokenToException(Authentication auth) {
+		return ((SamlAuthenticationExceptionAuthenticationToken) auth).createOAuth2Exception();
+	}
+
+	private String handleAuthException(Map<String, Object> model,
+									   HttpServletRequest req,
+									   ExtendedOAuth2Exception exception,
+									   String userCode)
+	{
+		deviceCodeService.addErrorToCode(userCode, exception);
+		ControllerUtils.setPageOptions(model, req, htmlClasses, perunOidcConfig);
+		if (perunOidcConfig.getTheme().equalsIgnoreCase("lsaai")) {
+			return "lsaai/" + DEVICE_FLOW_ERROR_VIEW;
+		}
+		return DEVICE_FLOW_ERROR_VIEW;
+	}
+
+	private String handleAcrsException(Map<String, Object> model, HttpServletRequest req, String userCode,
+									   String requestedAcrs, String achievedAcrs)
+	{
+		log.warn("DEVICE_CODE_FLOW: User won't be allowed to proceed - device_code request contained ACR_VALUES '{}'," +
+				" user has authenticated with ACRS '{}'", requestedAcrs, achievedAcrs);
+		String exMsg = "No requested acr achieved - requested '" + requestedAcrs + ", achieved '" + achievedAcrs + "'";
+		return handleAuthException(
+				model,
+				req,
+				new ExtendedOAuth2Exception(ERROR_UNMET_AUTHENTICATION_REQUIREMENTS, exMsg),
+				userCode
+		);
+	}
+
 }

@@ -28,10 +28,10 @@ import cz.muni.ics.oauth2.model.ClientDetailsEntity;
 import cz.muni.ics.oauth2.model.SystemScope;
 import cz.muni.ics.oauth2.service.ClientDetailsEntityService;
 import cz.muni.ics.oauth2.service.SystemScopeService;
-import cz.muni.ics.oidc.models.Facility;
-import cz.muni.ics.oidc.models.PerunAttributeValue;
+import cz.muni.ics.oauth2.web.AuthenticationUtilities;
 import cz.muni.ics.oidc.saml.SamlPrincipal;
 import cz.muni.ics.oidc.server.adapters.PerunAdapter;
+import cz.muni.ics.oidc.server.configurations.FacilityAttrsConfig;
 import cz.muni.ics.oidc.server.configurations.PerunOidcConfig;
 import cz.muni.ics.oidc.web.WebHtmlClasses;
 import cz.muni.ics.oidc.web.controllers.ControllerUtils;
@@ -41,11 +41,8 @@ import cz.muni.ics.openid.connect.service.ScopeClaimTranslationService;
 import cz.muni.ics.openid.connect.service.UserInfoService;
 import cz.muni.ics.openid.connect.view.HttpCodeView;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
@@ -61,7 +58,6 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
@@ -97,9 +93,6 @@ public class OAuthConfirmationController {
 
 	public static final String LSAAI = "lsaai";
 
-	public static final Set<String> euEaa = Set.of("AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE",
-			"EL", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "RO", "SK", "SI", "ES", "SE", "NO", "IS", "LI", "GB");
-
 	@Getter
 	@Setter
 	private ClientDetailsEntityService clientService;
@@ -110,8 +103,9 @@ public class OAuthConfirmationController {
 	private RedirectResolver redirectResolver;
 	private PerunOidcConfig perunOidcConfig;
 	private WebHtmlClasses htmlClasses;
-
 	private PerunAdapter perunAdapter;
+
+	private FacilityAttrsConfig facilityAttrsConfig;
 
 	@Autowired
 	public OAuthConfirmationController(ClientDetailsEntityService clientService,
@@ -121,7 +115,8 @@ public class OAuthConfirmationController {
 									   RedirectResolver redirectResolver,
 									   PerunOidcConfig perunOidcConfig,
 									   WebHtmlClasses htmlClasses,
-									   PerunAdapter perunAdapter) {
+									   PerunAdapter perunAdapter,
+									   FacilityAttrsConfig facilityAttrsConfig) {
 
 		this.clientService = clientService;
 		this.scopeService = scopeService;
@@ -131,6 +126,7 @@ public class OAuthConfirmationController {
 		this.perunOidcConfig = perunOidcConfig;
 		this.htmlClasses = htmlClasses;
 		this.perunAdapter = perunAdapter;
+		this.facilityAttrsConfig = facilityAttrsConfig;
 	}
 
 	public OAuthConfirmationController(ClientDetailsEntityService clientService) {
@@ -206,43 +202,11 @@ public class OAuthConfirmationController {
 		model.put(PAGE, CONSENT);
 		if (perunOidcConfig.getTheme().equalsIgnoreCase(LSAAI)) {
 			model.put("getsOfflineAccess", authRequest.getScope().contains("offline_access"));
-			model.put("jurisdiction", getJurisdiction(client));
-			model.put("isTestSp", isTestSp(client));
+			model.put("jurisdiction", AuthenticationUtilities.getJurisdiction(client));
+			model.put("isTestSp", AuthenticationUtilities.isTestSp(client, perunAdapter, facilityAttrsConfig.getTestSpAttr()));
 			return "lsaai/approve";
 		}
 		return THEMED_APPROVE;
-	}
-
-	private boolean isTestSp(ClientDetailsEntity client) {
-		if (client == null || !StringUtils.hasText(client.getClientId())) {
-			return true;
-		}
-		Facility facility = perunAdapter.getFacilityByClientId(client.getClientId());
-		if (facility == null || facility.getId() == null) {
-			return true;
-		}
-
-		PerunAttributeValue attrValue = perunAdapter.getFacilityAttributeValue(facility.getId(), "urn:perun:facility:attribute-def:def:isTestSp");
-		if (attrValue == null) {
-			return false;
-		} else if (attrValue.valueAsBoolean()) {
-			return attrValue.valueAsBoolean();
-		}
-		return false;
-	}
-
-	private String getJurisdiction(ClientDetailsEntity client) {
-		if (!StringUtils.hasText(client.getJurisdiction()) || euEaa.contains(client.getJurisdiction())) {
-			return "";
-		} else if (client.getJurisdiction().length() > 2) {
-			if ("EMBL".equalsIgnoreCase(client.getJurisdiction())) {
-				return "EMBL";
-			}
-			return "INT";
-		}
-
-		Locale l = new Locale("", client.getJurisdiction());
-		return l.getDisplayCountry() + " (" + l.getISO3Country() + ")";
 	}
 
 	private String sendRedirect(AuthorizationRequest authRequest, Map<String, Object> model, ClientDetailsEntity client) {

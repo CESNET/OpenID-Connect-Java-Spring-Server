@@ -19,6 +19,8 @@ package cz.muni.ics.oauth2.service;
 import cz.muni.ics.oauth2.exception.DeviceCodeCreationException;
 import cz.muni.ics.oauth2.model.ClientDetailsEntity;
 import cz.muni.ics.oauth2.model.DeviceCode;
+import cz.muni.ics.oidc.saml.ExtendedOAuth2Exception;
+import cz.muni.ics.oidc.saml.SamlAuthenticationExceptionAuthenticationToken;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -40,4 +42,6 @@ public interface DeviceCodeService {
 	DeviceCode createNewDeviceCode(Set<String> requestedScopes, ClientDetailsEntity client, Map<String, String> parameters) throws DeviceCodeCreationException;
 
 	void clearExpiredDeviceCodes();
+
+    void addErrorToCode(String userCode, ExtendedOAuth2Exception exc);
 }
