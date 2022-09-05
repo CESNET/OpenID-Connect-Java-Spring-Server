@@ -1,3 +1,10 @@
+## [10.5.4](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.3...v10.5.4) (2022-09-05)
+
+
+### Bug Fixes
+
+* **deps:** update dependency io.sentry:sentry-bom to v6.4.1 ([6cb4584](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/6cb45840e079f616b2791be3838448f24fe17f50))
+
 ## [10.5.3](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.2...v10.5.3) (2022-09-02)
 
 
