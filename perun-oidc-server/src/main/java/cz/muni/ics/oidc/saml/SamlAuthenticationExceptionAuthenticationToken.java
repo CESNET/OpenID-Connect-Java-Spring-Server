@@ -14,13 +14,14 @@
  */
 package cz.muni.ics.oidc.saml;
 
+import static cz.muni.ics.oidc.saml.ExtendedOAuth2Exception.ERROR_UNMET_AUTHENTICATION_REQUIREMENTS;
+
 import java.security.Principal;
 import java.util.Collections;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.opensaml.common.SAMLException;
 import org.opensaml.saml2.core.StatusCode;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -61,7 +62,7 @@ public class SamlAuthenticationExceptionAuthenticationToken extends AbstractAuth
     @Override
     public void eraseCredentials() { }
 
-    public OAuth2Exception createOAuth2Exception() {
+    public ExtendedOAuth2Exception createOAuth2Exception() {
         if (causeException != null) {
             Throwable t = causeException;
             while (t.getCause() != null) {
@@ -69,17 +70,17 @@ public class SamlAuthenticationExceptionAuthenticationToken extends AbstractAuth
                 t = t.getCause();
             }
             if (t instanceof InsufficientAuthenticationException) {
-                return new ExtendedOAuth2Exception("unmet_authentication_requirements", t.getMessage());
+                return new ExtendedOAuth2Exception(ERROR_UNMET_AUTHENTICATION_REQUIREMENTS, t.getMessage());
             }
             if (t instanceof SAMLStatusException) {
                 String code = ((SAMLStatusException) t).getStatusCode();
                 if (StatusCode.NO_AUTHN_CONTEXT_URI.equalsIgnoreCase(code)) {
-                    return new ExtendedOAuth2Exception("unmet_authentication_requirements", t.getMessage());
+                    return new ExtendedOAuth2Exception(ERROR_UNMET_AUTHENTICATION_REQUIREMENTS, t.getMessage());
                 }
             }
-            return new OAuth2Exception(t.getMessage());
+            return new ExtendedOAuth2Exception(OAuth2Exception.INVALID_REQUEST, t.getMessage());
         }
-        //TODO: handle
-        return new OAuth2Exception("");
+        return new ExtendedOAuth2Exception(OAuth2Exception.INVALID_REQUEST, "");
     }
+
 }
