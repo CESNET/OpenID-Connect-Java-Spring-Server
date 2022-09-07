@@ -1,3 +1,10 @@
+## [10.6.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.6.0...v10.6.1) (2022-09-07)
+
+
+### Bug Fixes
+
+* 🐛 Fix non-existing continue_direct view name ([bc73242](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/bc732422c4c4b1daf485d5e8656ef94d506b54af))
+
 # [10.6.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.4...v10.6.0) (2022-09-06)
 
 
