@@ -36,9 +36,9 @@ public class RegistrationController {
         model.put(PARAM_TARGET, target);
         ControllerUtils.setPageOptions(model, req, htmlClasses, perunOidcConfig);
         if (perunOidcConfig.getTheme().equalsIgnoreCase("lsaai")) {
-            return "lsaai/continue_direct";
+            return "lsaai/registrationFormContinue";
         }
-        return "continue_direct";
+        return "registrationFormContinue";
     }
 
 }
