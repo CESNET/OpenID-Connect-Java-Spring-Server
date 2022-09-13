@@ -1,3 +1,15 @@
+# [12.0.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v11.0.3...v12.0.0) (2022-09-13)
+
+
+### Features
+
+* 🎸 better introspectionr results ([ee1dda8](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/ee1dda8c84e69604621d6bd39ded1dac5e13b6fa))
+
+
+### BREAKING CHANGES
+
+* Requires db update (see v12.0.0.sql)
+
 ## [11.0.3](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v11.0.2...v11.0.3) (2022-09-13)
 
 
