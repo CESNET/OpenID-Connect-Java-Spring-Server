@@ -44,30 +44,28 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import static cz.muni.ics.oauth2.service.IntrospectionResultAssembler.ACTIVE;
+
 @Controller
 @Slf4j
 public class IntrospectionEndpoint {
 
 	public static final String URL = "introspect";
-
 	public static final String PARAM_TOKEN = "token";
 	public static final String PARAM_TOKEN_TYPE_HINT = "token_type_hint";
 
 	private final OAuth2TokenEntityService tokenServices;
 	private final ClientDetailsEntityService clientService;
 	private final IntrospectionResultAssembler introspectionResultAssembler;
-	private final UserInfoService userInfoService;
 
 	@Autowired
 	public IntrospectionEndpoint(OAuth2TokenEntityService tokenServices,
 								 ClientDetailsEntityService clientService,
-								 IntrospectionResultAssembler introspectionResultAssembler,
-								 UserInfoService userInfoService)
+								 IntrospectionResultAssembler introspectionResultAssembler)
 	{
 		this.tokenServices = tokenServices;
 		this.clientService = clientService;
 		this.introspectionResultAssembler = introspectionResultAssembler;
-		this.userInfoService = userInfoService;
 	}
 
 	@RequestMapping("/" + URL)
@@ -114,7 +112,7 @@ public class IntrospectionEndpoint {
 			} else {
 				entity = introspectAccessToken(token, authClient.getScope());
 			}
-		} else if (tokenTypeHint.equals("access_token")) {
+		} else if ("access_token".equals(tokenTypeHint)) {
 			entity = introspectAccessToken(token, authClient.getScope());
 			if (entity != null) {
 				return jsonResponse(model, entity);
@@ -137,20 +135,19 @@ public class IntrospectionEndpoint {
 	}
 
 	private Map<String, Object> introspectUnknownToken() {
-		return ImmutableMap.of(IntrospectionResultAssembler.ACTIVE, false);
+		return ImmutableMap.of(ACTIVE, false);
 	}
 
 	private Map<String, Object> introspectAccessToken(String token, Set<String> callerScopes) {
 		try {
 			// check access tokens first (includes ID tokens)
 			OAuth2AccessTokenEntity accessToken = tokenServices.readAccessToken(token);
-			ClientDetailsEntity tokenClient = accessToken.getClient();
-
-			// get the user information of the user that authorized this token in the first place
-			String userName = accessToken.getAuthenticationHolder().getAuthentication().getName();
-			UserInfo user = userInfoService.get(userName, tokenClient.getClientId(),
-					callerScopes, accessToken.getAuthenticationHolder().getUserAuth());
-			return introspectionResultAssembler.assembleFrom(accessToken, user, callerScopes);
+			Map<String, Object> introspectionResult = introspectionResultAssembler.assembleFrom(accessToken, callerScopes);
+			if (accessToken.isExpired()) {
+				introspectionResult.clear();
+				introspectionResult.put(ACTIVE, false);
+			}
+			return introspectionResult;
 		} catch (InvalidTokenException e) {
 			return null;
 		}
@@ -159,13 +156,12 @@ public class IntrospectionEndpoint {
 	private Map<String, Object> introspectRefreshToken(String token, Set<String> callerScopes) {
 		try {
 			OAuth2RefreshTokenEntity refreshToken = tokenServices.getRefreshToken(token);
-			ClientDetailsEntity tokenClient = refreshToken.getClient();
-
-			// get the user information of the user that authorized this token in the first place
-			String userName = refreshToken.getAuthenticationHolder().getAuthentication().getName();
-			UserInfo user = userInfoService.get(userName, tokenClient.getClientId(), callerScopes,
-					refreshToken.getAuthenticationHolder().getUserAuth());
-			return introspectionResultAssembler.assembleFrom(refreshToken, user, callerScopes);
+			Map<String, Object> introspectionResult = introspectionResultAssembler.assembleFrom(refreshToken, callerScopes);
+			if (refreshToken.isExpired()) {
+				introspectionResult.clear();
+				introspectionResult.put(ACTIVE, false);
+			}
+			return introspectionResult;
 		} catch (InvalidTokenException e2) {
 			return null;
 		}

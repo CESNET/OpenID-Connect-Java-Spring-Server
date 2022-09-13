@@ -28,35 +28,40 @@ import javax.swing.text.DateFormatter;
  */
 public interface IntrospectionResultAssembler {
 
-	String TOKEN_TYPE = "token_type";
-	String CLIENT_ID = "client_id";
-	String USER_ID = "user_id";
-	String SUB = "sub";
-	String EXP = "exp";
-	String EXPIRES_AT = "expires_at";
-	String SCOPE_SEPARATOR = " ";
-	String SCOPE = "scope";
 	String ACTIVE = "active";
-	DateFormatter dateFormat = new DateFormatter(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"));
+	String SCOPE = "scope";
+	String CLIENT_ID = "client_id";
+	String USERNAME = "username";
+	String TOKEN_TYPE = "token_type";
+	String EXP = "exp";
+	String IAT = "iat";
+	String NBF = "nbf";
+	String SUB = "sub";
+	String AUD = "aud";
+	String ISS = "iss";
+	String JTI = "jti";
+
+	String ACR = "acr";
+	String AUTH_TIME = "auth_time";
+	String SCOPE_SEPARATOR = " ";
+
 
 	/**
 	 * Assemble a token introspection result from the given access token and user info.
 	 *
-	 * @param accessToken the access token
-	 * @param userInfo the user info
-	 * @param authScopes the scopes the client is authorized for
+	 * @param token the access token
+	 * @param introspectionRequesterScopes the scopes the client is authorized for
 	 * @return the token introspection result
 	 */
-	Map<String, Object> assembleFrom(OAuth2AccessTokenEntity accessToken, UserInfo userInfo, Set<String> authScopes);
+	Map<String, Object> assembleFrom(OAuth2AccessTokenEntity token, Set<String> introspectionRequesterScopes);
 
 	/**
 	 * Assemble a token introspection result from the given refresh token and user info.
 	 *
-	 * @param refreshToken the refresh token
-	 * @param userInfo the user info
-	 * @param authScopes the scopes the client is authorized for
+	 * @param token the refresh token
+	 * @param introspectionRequesterScopes the scopes the client is authorized for
 	 * @return the token introspection result
 	 */
-	Map<String, Object> assembleFrom(OAuth2RefreshTokenEntity refreshToken, UserInfo userInfo, Set<String> authScopes);
+	Map<String, Object> assembleFrom(OAuth2RefreshTokenEntity token, Set<String> introspectionRequesterScopes);
 
 }
