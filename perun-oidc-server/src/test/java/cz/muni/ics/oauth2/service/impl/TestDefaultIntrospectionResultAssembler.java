@@ -15,6 +15,21 @@
  *******************************************************************************/
 package cz.muni.ics.oauth2.service.impl;
 
+import com.google.common.collect.ImmutableMap;
+import cz.muni.ics.oauth2.model.OAuth2AccessTokenEntity;
+import cz.muni.ics.oauth2.model.OAuth2RefreshTokenEntity;
+import cz.muni.ics.oauth2.service.IntrospectionResultAssembler;
+import org.junit.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
+
+import java.text.ParseException;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -23,61 +38,36 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import cz.muni.ics.oauth2.model.OAuth2AccessTokenEntity;
-import cz.muni.ics.oauth2.model.OAuth2RefreshTokenEntity;
-import cz.muni.ics.oauth2.service.IntrospectionResultAssembler;
-import cz.muni.ics.openid.connect.model.UserInfo;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import javax.swing.text.DateFormatter;
-import org.junit.Test;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-
 public class TestDefaultIntrospectionResultAssembler {
 
 	private final IntrospectionResultAssembler assembler = new DefaultIntrospectionResultAssembler();
 
-	private static final DateFormatter dateFormat = new DateFormatter(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"));
-
 	@Test
-	public void shouldAssembleExpectedResultForAccessToken() throws ParseException {
-
+	public void shouldAssembleExpectedResultForAccessToken() {
 		// given
 		OAuth2AccessTokenEntity accessToken = accessToken(new Date(123 * 1000L), scopes("foo", "bar"), "Bearer",
 				oauth2AuthenticationWithUser(oauth2Request("clientId"), "name"));
 
-		UserInfo userInfo = userInfo("sub");
-
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(accessToken, userInfo, authScopes);
-
+		Map<String, Object> result = assembler.assembleFrom(accessToken, authScopes);
 
 		// then
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "sub")
 				.put("exp", 123L)
-				.put("expires_at", dateFormat.valueToString(new Date(123 * 1000L)))
 				.put("scope", "bar foo")
 				.put("active", Boolean.TRUE)
-				.put("user_id", "name")
+				.put("username", "name")
 				.put("client_id", "clientId")
 				.put("token_type", "Bearer")
+				.put("auth_time", 0L)
 				.build();
 		assertThat(result, is(equalTo(expected)));
 	}
 
 	@Test
-	public void shouldAssembleExpectedResultForAccessTokenWithoutUserInfo() throws ParseException {
+	public void shouldAssembleExpectedResultForAccessTokenWithoutUserInfo() {
 
 		// given
 		OAuth2AccessTokenEntity accessToken = accessToken(new Date(123 * 1000L), scopes("foo", "bar"), "Bearer",
@@ -86,52 +76,48 @@ public class TestDefaultIntrospectionResultAssembler {
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(accessToken, null, authScopes);
+		Map<String, Object> result = assembler.assembleFrom(accessToken, authScopes);
 
 
 		// then
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "name")
 				.put("exp", 123L)
-				.put("expires_at", dateFormat.valueToString(new Date(123 * 1000L)))
 				.put("scope", "bar foo")
 				.put("active", Boolean.TRUE)
-				.put("user_id", "name")
+				.put("username", "name")
 				.put("client_id", "clientId")
 				.put("token_type", "Bearer")
+				.put("auth_time", 0L)
 				.build();
 		assertThat(result, is(equalTo(expected)));
 	}
 
 	@Test
 	public void shouldAssembleExpectedResultForAccessTokenWithoutExpiry() {
-
 		// given
 		OAuth2AccessTokenEntity accessToken = accessToken(null, scopes("foo", "bar"), "Bearer",
 				oauth2AuthenticationWithUser(oauth2Request("clientId"), "name"));
 
-		UserInfo userInfo = userInfo("sub");
-
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(accessToken, userInfo, authScopes);
+		Map<String, Object> result = assembler.assembleFrom(accessToken, authScopes);
 
 
 		// then
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "sub")
 				.put("scope", "bar foo")
 				.put("active", Boolean.TRUE)
-				.put("user_id", "name")
+				.put("username", "name")
 				.put("client_id", "clientId")
 				.put("token_type", "Bearer")
+				.put("auth_time", 0L)
 				.build();
 		assertThat(result, is(equalTo(expected)));
 	}
 
 	@Test
-	public void shouldAssembleExpectedResultForAccessTokenWithoutUserAuthentication() throws ParseException {
+	public void shouldAssembleExpectedResultForAccessTokenWithoutUserAuthentication() {
 		// given
 		OAuth2AccessTokenEntity accessToken = accessToken(new Date(123 * 1000L), scopes("foo", "bar"), "Bearer",
 				oauth2Authentication(oauth2Request("clientId"), null));
@@ -139,52 +125,49 @@ public class TestDefaultIntrospectionResultAssembler {
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(accessToken, null, authScopes);
+		Map<String, Object> result = assembler.assembleFrom(accessToken, authScopes);
 
 
 		// then `user_id` should not be present
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "clientId")
 				.put("exp", 123L)
-				.put("expires_at", dateFormat.valueToString(new Date(123 * 1000L)))
 				.put("scope", "bar foo")
 				.put("active", Boolean.TRUE)
 				.put("client_id", "clientId")
 				.put("token_type", "Bearer")
+				.put("auth_time", 0L)
 				.build();
 		assertThat(result, is(equalTo(expected)));
 	}
 
 	@Test
-	public void shouldAssembleExpectedResultForRefreshToken() throws ParseException {
+	public void shouldAssembleExpectedResultForRefreshToken() {
 
 		// given
 		OAuth2RefreshTokenEntity refreshToken = refreshToken(new Date(123 * 1000L),
 				oauth2AuthenticationWithUser(oauth2Request("clientId", scopes("foo", "bar")), "name"));
 
-		UserInfo userInfo = userInfo("sub");
-
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(refreshToken, userInfo, authScopes);
+		Map<String, Object> result = assembler.assembleFrom(refreshToken, authScopes);
 
 
 		// then
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "sub")
-				.put("exp", 123L)
-				.put("expires_at", dateFormat.valueToString(new Date(123 * 1000L)))
 				.put("scope", "bar foo")
-				.put("active", Boolean.TRUE)
-				.put("user_id", "name")
 				.put("client_id", "clientId")
+				.put("token_type", "refresh_token")
+				.put("exp", 123L)
+				.put("username", "name")
+				.put("auth_time", 0L)
+				.put("active", Boolean.TRUE)
 				.build();
 		assertThat(result, is(equalTo(expected)));
 	}
 
 	@Test
-	public void shouldAssembleExpectedResultForRefreshTokenWithoutUserInfo() throws ParseException {
+	public void shouldAssembleExpectedResultForRefreshTokenWithoutUserInfo() {
 
 		// given
 		OAuth2RefreshTokenEntity refreshToken = refreshToken(new Date(123 * 1000L),
@@ -193,18 +176,18 @@ public class TestDefaultIntrospectionResultAssembler {
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(refreshToken, null, authScopes);
+		Map<String, Object> result = assembler.assembleFrom(refreshToken, authScopes);
 
 
 		// then
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "name")
 				.put("exp", 123L)
-				.put("expires_at", dateFormat.valueToString(new Date(123 * 1000L)))
 				.put("scope", "bar foo")
 				.put("active", Boolean.TRUE)
-				.put("user_id", "name")
+				.put("username", "name")
 				.put("client_id", "clientId")
+				.put("token_type", "refresh_token")
+				.put("auth_time", 0L)
 				.build();
 		assertThat(result, is(equalTo(expected)));
 	}
@@ -216,21 +199,20 @@ public class TestDefaultIntrospectionResultAssembler {
 		OAuth2RefreshTokenEntity refreshToken = refreshToken(null,
 				oauth2AuthenticationWithUser(oauth2Request("clientId", scopes("foo",  "bar")), "name"));
 
-		UserInfo userInfo = userInfo("sub");
-
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(refreshToken, userInfo, authScopes);
+		Map<String, Object> result = assembler.assembleFrom(refreshToken, authScopes);
 
 
 		// then
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "sub")
 				.put("scope", "bar foo")
 				.put("active", Boolean.TRUE)
-				.put("user_id", "name")
+				.put("username", "name")
 				.put("client_id", "clientId")
+				.put("token_type", "refresh_token")
+				.put("auth_time", 0L)
 				.build();
 		assertThat(result, is(equalTo(expected)));
 	}
@@ -244,25 +226,18 @@ public class TestDefaultIntrospectionResultAssembler {
 		Set<String> authScopes = scopes("foo", "bar", "baz");
 
 		// when
-		Map<String, Object> result = assembler.assembleFrom(refreshToken, null, authScopes);
+		Map<String, Object> result = assembler.assembleFrom(refreshToken, authScopes);
 
 
 		// then `user_id` should not be present
 		Map<String, Object> expected = new ImmutableMap.Builder<String, Object>()
-				.put("sub", "clientId")
 				.put("scope", "bar foo")
 				.put("active", Boolean.TRUE)
 				.put("client_id", "clientId")
+				.put("token_type", "refresh_token")
+				.put("auth_time", 0L)
 				.build();
 		assertThat(result, is(equalTo(expected)));
-	}
-
-
-
-	private UserInfo userInfo(String sub) {
-		UserInfo userInfo = mock(UserInfo.class);
-		given(userInfo.getSub()).willReturn(sub);
-		return userInfo;
 	}
 
 	private OAuth2AccessTokenEntity accessToken(Date exp, Set<String> scopes, String tokenType, OAuth2Authentication authentication) {

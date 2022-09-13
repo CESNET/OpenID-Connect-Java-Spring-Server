@@ -442,11 +442,6 @@
 		<property name="perunUserInfoService" ref="userInfoService"/>
 	</bean>
 
-	<bean id="introspectionResultAssembler" class="cz.muni.ics.oidc.server.PerunIntrospectionResultAssembler" primary="true">
-		<constructor-arg name="configBean" ref="configBean"/>
-		<constructor-arg name="translator" ref="scopeClaimTranslator"/>
-	</bean>
-
 	<bean id="perunOidcConfig" class="cz.muni.ics.oidc.server.configurations.PerunOidcConfig">
 		<property name="rpcEnabled" value="${perun.rpc.enabled}"/>
 		<property name="rpcUrl" value="${perun.rpc.url}"/>

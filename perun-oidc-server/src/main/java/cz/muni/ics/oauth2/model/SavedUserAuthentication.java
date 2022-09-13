@@ -21,6 +21,7 @@ import cz.muni.ics.oauth2.model.convert.SimpleGrantedAuthorityStringConverter;
 import cz.muni.ics.oidc.saml.SamlPrincipal;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
@@ -42,6 +43,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.eclipse.persistence.annotations.CascadeOnDelete;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.opensaml.saml2.core.AuthnContext;
 import org.opensaml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml2.core.AuthnStatement;
@@ -49,6 +52,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.providers.ExpiringUsernameAuthenticationToken;
 import org.springframework.security.saml.SAMLCredential;
+import org.springframework.util.StringUtils;
 
 /**
  * This class stands in for an original Authentication object.
@@ -90,6 +94,9 @@ public class SavedUserAuthentication implements Authentication {
 	@Column(name = "acr")
 	private String acr;
 
+	@Column(name = "auth_time")
+	private Long authTime = null;
+
 	@Column(name = "authentication_attributes")
 	@Convert(converter = SamlAuthenticationDetailsStringConverter.class)
 	private SamlAuthenticationDetails authenticationDetails;
@@ -100,8 +107,9 @@ public class SavedUserAuthentication implements Authentication {
 		setAuthenticated(src.isAuthenticated());
 		if (src instanceof SavedUserAuthentication) {
 			SavedUserAuthentication source = (SavedUserAuthentication) src;
-			this.setAcr(source.getAcr());
-			this.setAuthenticationDetails(source.getAuthenticationDetails());
+			this.setAcr(source.acr);
+			this.setAuthTime(source.authTime);
+			this.setAuthenticationDetails(source.authenticationDetails);
 		} else if (src instanceof ExpiringUsernameAuthenticationToken) {
 			ExpiringUsernameAuthenticationToken token = (ExpiringUsernameAuthenticationToken) src;
 			SAMLCredential credential = ((SamlPrincipal) token.getPrincipal()).getSamlCredential();
@@ -113,6 +121,8 @@ public class SavedUserAuthentication implements Authentication {
 					.map(AuthnContextClassRef::getAuthnContextClassRef)
 					.collect(Collectors.joining())
 			);
+			this.setAuthTime(credential.getAuthenticationAssertion()
+					.getAuthnStatements().get(0).getAuthnInstant().getMillis());
 			this.setAuthenticationDetails(new SamlAuthenticationDetails(credential));
 		}
 	}

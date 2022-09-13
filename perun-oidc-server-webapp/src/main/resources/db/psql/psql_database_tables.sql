@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS authentication_holder_request_parameter (
 CREATE TABLE IF NOT EXISTS saved_user_auth (
     id BIGSERIAL PRIMARY KEY,
     acr VARCHAR(1024),
+    auth_time BIGINT DEFAULT NULL,
     name VARCHAR(1024),
     authenticated BOOLEAN,
     authentication_attributes TEXT
