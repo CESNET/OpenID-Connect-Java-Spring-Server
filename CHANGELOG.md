@@ -1,3 +1,15 @@
+# [11.0.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.4...v11.0.0) (2022-09-13)
+
+
+### Features
+
+* 🎸 Return samlError from token in devicecode ([ff184f1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/ff184f1bfd19875564783456bf84e98cde1c329d))
+
+
+### BREAKING CHANGES
+
+* requires DB update
+
 ## [10.5.4](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v10.5.3...v10.5.4) (2022-09-13)
 
 
