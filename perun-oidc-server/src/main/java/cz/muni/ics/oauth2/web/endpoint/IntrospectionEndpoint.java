@@ -17,7 +17,6 @@
  *******************************************************************************/
 package cz.muni.ics.oauth2.web.endpoint;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import cz.muni.ics.oauth2.model.ClientDetailsEntity;
 import cz.muni.ics.oauth2.model.OAuth2AccessTokenEntity;
@@ -25,13 +24,13 @@ import cz.muni.ics.oauth2.model.OAuth2RefreshTokenEntity;
 import cz.muni.ics.oauth2.service.ClientDetailsEntityService;
 import cz.muni.ics.oauth2.service.IntrospectionResultAssembler;
 import cz.muni.ics.oauth2.service.OAuth2TokenEntityService;
-import cz.muni.ics.oauth2.service.SystemScopeService;
 import cz.muni.ics.oauth2.web.AuthenticationUtilities;
 import cz.muni.ics.openid.connect.model.UserInfo;
 import cz.muni.ics.openid.connect.service.UserInfoService;
 import cz.muni.ics.openid.connect.view.HttpCodeView;
 import cz.muni.ics.openid.connect.view.JsonEntityView;
-import java.util.HashSet;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -49,142 +48,137 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Slf4j
 public class IntrospectionEndpoint {
 
-	/**
-	 *
-	 */
 	public static final String URL = "introspect";
 
-	@Autowired
-	private OAuth2TokenEntityService tokenServices;
+	public static final String PARAM_TOKEN = "token";
+	public static final String PARAM_TOKEN_TYPE_HINT = "token_type_hint";
+
+	private final OAuth2TokenEntityService tokenServices;
+	private final ClientDetailsEntityService clientService;
+	private final IntrospectionResultAssembler introspectionResultAssembler;
+	private final UserInfoService userInfoService;
 
 	@Autowired
-	private ClientDetailsEntityService clientService;
-
-	@Autowired
-	private IntrospectionResultAssembler introspectionResultAssembler;
-
-	@Autowired
-	private UserInfoService userInfoService;
-
-	public IntrospectionEndpoint() {
-
-	}
-
-	public IntrospectionEndpoint(OAuth2TokenEntityService tokenServices) {
+	public IntrospectionEndpoint(OAuth2TokenEntityService tokenServices,
+								 ClientDetailsEntityService clientService,
+								 IntrospectionResultAssembler introspectionResultAssembler,
+								 UserInfoService userInfoService)
+	{
 		this.tokenServices = tokenServices;
+		this.clientService = clientService;
+		this.introspectionResultAssembler = introspectionResultAssembler;
+		this.userInfoService = userInfoService;
 	}
 
 	@RequestMapping("/" + URL)
-	public String verify(@RequestParam("token") String tokenValue,
-			@RequestParam(value = "token_type_hint", required = false) String tokenType,
-			Authentication auth, Model model) {
+	public String introspect(@RequestParam(PARAM_TOKEN) String token,
+							 @RequestParam(value = PARAM_TOKEN_TYPE_HINT, required = false) String tokenTypeHint,
+							 Authentication auth,
+							 Model model)
+	{
+		if (auth == null) {
+			log.error("No authentication object available in the introspection endpoint");
+			return codeErrorResponse(model, HttpStatus.UNAUTHORIZED);
+		}
 
-		ClientDetailsEntity authClient = null;
-		Set<String> authScopes = new HashSet<>();
+		String authClientId = auth.getName();
+		if (!StringUtils.hasText(authClientId)) {
+			log.error("No client_id object available in the introspection endpoint");
+			return codeErrorResponse(model, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
-		if (auth instanceof OAuth2Authentication) {
-			// the client authenticated with OAuth, do our UMA checks
-			AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE);
+		ClientDetailsEntity authClient = clientService.loadClientByClientId(authClientId);
+		if (authClient == null) {
+			log.error("No client found for client_id '{}'", authClientId);
+			return codeErrorResponse(model, HttpStatus.BAD_REQUEST);
+		} else if (!AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT") || !authClient.isAllowIntrospection()) {
+			log.error("Client '{}' is not allowed to call introspection endpoint", authClient.getClientId());
+			return codeErrorResponse(model, HttpStatus.FORBIDDEN);
+		}
 
-			// get out the client that was issued the access token (not the token being introspected)
-			OAuth2Authentication o2a = (OAuth2Authentication) auth;
+		return introspectToken(model, token, tokenTypeHint, authClient);
+	}
 
-			String authClientId = o2a.getOAuth2Request().getClientId();
-			authClient = clientService.loadClientByClientId(authClientId);
+	private String introspectToken(Model model, String token, String tokenTypeHint, ClientDetailsEntity authClient) {
+		Map<String, Object> entity;
+		if (!StringUtils.hasText(token)) {
+			log.error("Token introspection failed; token ('{}') not provided", token);
+			entity = introspectUnknownToken();
+			return jsonResponse(model, entity);
+		}
 
-			// the owner is the user who authorized the token in the first place
-			String ownerId = o2a.getUserAuthentication().getName();
-
-			authScopes.addAll(authClient.getScope());
-		} else {
-			// the client authenticated directly, make sure it's got the right access
-
-			String authClientId = auth.getName(); // direct authentication puts the client_id into the authentication's name field
-			authClient = clientService.loadClientByClientId(authClientId);
-
-			// directly authenticated clients get a subset of any scopes that they've registered for
-			authScopes.addAll(authClient.getScope());
-
-			if (!AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
-					|| !authClient.isAllowIntrospection()) {
-
-				// this client isn't allowed to do direct introspection
-
-				log.error("Client " + authClient.getClientId() + " is not allowed to call introspection endpoint");
-				model.addAttribute("code", HttpStatus.FORBIDDEN);
-				return HttpCodeView.VIEWNAME;
-
+		if ("refresh_token".equals(tokenTypeHint)) {
+			entity = introspectRefreshToken(token, authClient.getScope());
+			if (entity != null) {
+				return jsonResponse(model, entity);
+			} else {
+				entity = introspectAccessToken(token, authClient.getScope());
 			}
-
+		} else if (tokenTypeHint.equals("access_token")) {
+			entity = introspectAccessToken(token, authClient.getScope());
+			if (entity != null) {
+				return jsonResponse(model, entity);
+			} else {
+				entity = introspectRefreshToken(token, authClient.getScope());
+			}
+		} else {
+			entity = introspectAccessToken(token, authClient.getScope());
+			if (entity != null) {
+				return jsonResponse(model, entity);
+			} else {
+				entity = introspectRefreshToken(token, authClient.getScope());
+			}
 		}
 
-		// by here we're allowed to introspect, now we need to look up the token in our token stores
-
-		// first make sure the token is there
-		if (Strings.isNullOrEmpty(tokenValue)) {
-			log.error("Verify failed; token value is null");
-			Map<String,Boolean> entity = ImmutableMap.of("active", Boolean.FALSE);
-			model.addAttribute(JsonEntityView.ENTITY, entity);
-			return JsonEntityView.VIEWNAME;
+		if (entity == null) {
+			entity = introspectUnknownToken();
 		}
+		return jsonResponse(model, entity);
+	}
 
-		OAuth2AccessTokenEntity accessToken = null;
-		OAuth2RefreshTokenEntity refreshToken = null;
-		ClientDetailsEntity tokenClient;
-		UserInfo user;
+	private Map<String, Object> introspectUnknownToken() {
+		return ImmutableMap.of(IntrospectionResultAssembler.ACTIVE, false);
+	}
 
+	private Map<String, Object> introspectAccessToken(String token, Set<String> callerScopes) {
 		try {
-
 			// check access tokens first (includes ID tokens)
-			accessToken = tokenServices.readAccessToken(tokenValue);
-
-			tokenClient = accessToken.getClient();
+			OAuth2AccessTokenEntity accessToken = tokenServices.readAccessToken(token);
+			ClientDetailsEntity tokenClient = accessToken.getClient();
 
 			// get the user information of the user that authorized this token in the first place
 			String userName = accessToken.getAuthenticationHolder().getAuthentication().getName();
-			user = userInfoService.get(userName, tokenClient.getClientId(),
-					authScopes, accessToken.getAuthenticationHolder().getUserAuth());
-
+			UserInfo user = userInfoService.get(userName, tokenClient.getClientId(),
+					callerScopes, accessToken.getAuthenticationHolder().getUserAuth());
+			return introspectionResultAssembler.assembleFrom(accessToken, user, callerScopes);
 		} catch (InvalidTokenException e) {
-			log.info("Invalid access token. Checking refresh token.");
-			try {
-
-				// check refresh tokens next
-				refreshToken = tokenServices.getRefreshToken(tokenValue);
-
-				tokenClient = refreshToken.getClient();
-
-				// get the user information of the user that authorized this token in the first place
-				String userName = refreshToken.getAuthenticationHolder().getAuthentication().getName();
-				user = userInfoService.get(userName, tokenClient.getClientId(), authScopes,
-						refreshToken.getAuthenticationHolder().getUserAuth());
-
-			} catch (InvalidTokenException e2) {
-				log.error("Invalid refresh token");
-				Map<String,Boolean> entity = ImmutableMap.of(IntrospectionResultAssembler.ACTIVE, Boolean.FALSE);
-				model.addAttribute(JsonEntityView.ENTITY, entity);
-				return JsonEntityView.VIEWNAME;
-			}
+			return null;
 		}
+	}
 
-		// if it's a valid token, we'll print out information on it
+	private Map<String, Object> introspectRefreshToken(String token, Set<String> callerScopes) {
+		try {
+			OAuth2RefreshTokenEntity refreshToken = tokenServices.getRefreshToken(token);
+			ClientDetailsEntity tokenClient = refreshToken.getClient();
 
-		if (accessToken != null) {
-			Map<String, Object> entity = introspectionResultAssembler.assembleFrom(accessToken, user, authScopes);
-			model.addAttribute(JsonEntityView.ENTITY, entity);
-		} else if (refreshToken != null) {
-			Map<String, Object> entity = introspectionResultAssembler.assembleFrom(refreshToken, user, authScopes);
-			model.addAttribute(JsonEntityView.ENTITY, entity);
-		} else {
-			// no tokens were found (we shouldn't get here)
-			log.error("Verify failed; Invalid access/refresh token");
-			Map<String,Boolean> entity = ImmutableMap.of(IntrospectionResultAssembler.ACTIVE, Boolean.FALSE);
-			model.addAttribute(JsonEntityView.ENTITY, entity);
-			return JsonEntityView.VIEWNAME;
+			// get the user information of the user that authorized this token in the first place
+			String userName = refreshToken.getAuthenticationHolder().getAuthentication().getName();
+			UserInfo user = userInfoService.get(userName, tokenClient.getClientId(), callerScopes,
+					refreshToken.getAuthenticationHolder().getUserAuth());
+			return introspectionResultAssembler.assembleFrom(refreshToken, user, callerScopes);
+		} catch (InvalidTokenException e2) {
+			return null;
 		}
+	}
 
+	private String codeErrorResponse(Model model, HttpStatus code) {
+		model.addAttribute(HttpCodeView.CODE, code);
+		return HttpCodeView.VIEWNAME;
+	}
+
+	private String jsonResponse(Model model, Map<String, Object> entity) {
+		model.addAttribute(JsonEntityView.ENTITY, entity);
 		return JsonEntityView.VIEWNAME;
-
 	}
 
 }
