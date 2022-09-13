@@ -1,3 +1,10 @@
+## [11.0.2](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v11.0.1...v11.0.2) (2022-09-13)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.fasterxml.jackson.dataformat:jackson-dataformat-yaml to v2.13.4 ([8a4de44](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/8a4de4438b1bbffc76a60dedf3f61e1165451bd7))
+
 ## [11.0.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v11.0.0...v11.0.1) (2022-09-13)
 
 
