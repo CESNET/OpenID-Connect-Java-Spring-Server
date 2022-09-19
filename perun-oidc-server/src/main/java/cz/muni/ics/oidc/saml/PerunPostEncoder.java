@@ -6,13 +6,9 @@ import org.opensaml.common.binding.SAMLMessageContext;
 import org.opensaml.saml2.binding.encoding.HTTPPostEncoder;
 import org.opensaml.ws.message.MessageContext;
 import org.opensaml.ws.message.encoder.MessageEncodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 public class PerunPostEncoder extends HTTPPostEncoder {
-
-    private static final Logger log = LoggerFactory.getLogger(PerunPostEncoder.class);
 
     public PerunPostEncoder(VelocityEngine engine, String templateId) {
         super(engine, templateId);

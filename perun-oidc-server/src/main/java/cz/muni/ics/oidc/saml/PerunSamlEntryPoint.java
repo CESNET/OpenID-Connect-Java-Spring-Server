@@ -7,7 +7,6 @@ import static cz.muni.ics.oidc.server.filters.AuthProcFilterConstants.FILTER_PRE
 import static cz.muni.ics.oidc.server.filters.AuthProcFilterConstants.IDP_ENTITY_ID_PREFIX;
 import static cz.muni.ics.oidc.server.filters.AuthProcFilterConstants.PARAM_CLIENT_ID;
 import static cz.muni.ics.oidc.server.filters.AuthProcFilterConstants.PARAM_PROMPT;
-import static cz.muni.ics.oidc.server.filters.AuthProcFilterConstants.REFEDS_MFA;
 
 import cz.muni.ics.oidc.models.Facility;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
@@ -33,7 +32,6 @@ import org.opensaml.saml2.metadata.AssertionConsumerService;
 import org.opensaml.saml2.metadata.SPSSODescriptor;
 import org.opensaml.saml2.metadata.provider.MetadataProviderException;
 import org.opensaml.ws.message.encoder.MessageEncodingException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.saml.SAMLConstants;
 import org.springframework.security.saml.SAMLEntryPoint;
@@ -50,7 +48,6 @@ public class PerunSamlEntryPoint extends SAMLEntryPoint {
     private final FacilityAttrsConfig facilityAttrsConfig;
     private final SamlProperties samlProperties;
 
-    @Autowired
     public PerunSamlEntryPoint(PerunAdapter perunAdapter,
                                PerunOidcConfig config,
                                FacilityAttrsConfig facilityAttrsConfig,
@@ -140,15 +137,7 @@ public class PerunSamlEntryPoint extends SAMLEntryPoint {
     private void addExtraParams(HttpServletRequest request, WebSSOProfileOptions options) {
         log.debug("Transforming OIDC params to SAML");
         processAcrValues(request, options);
-        processForceAuthn(request, options);
         processPrompt(request, options);
-    }
-
-    private void processForceAuthn(HttpServletRequest request, WebSSOProfileOptions options) {
-        if (PerunSamlUtils.needsReAuthByForceAuthn(request)) {
-            log.debug("Transformed forceAuthn parameter to SAML forceAuthn=true");
-            options.setForceAuthN(true);
-        }
     }
 
     private void processPrompt(HttpServletRequest request, WebSSOProfileOptions options) {
@@ -171,11 +160,6 @@ public class PerunSamlEntryPoint extends SAMLEntryPoint {
                 log.debug("Added IdP filter as SAML AuthnContextClassRef ({})", idpFilter);
                 acrs.add(idpFilter);
             }
-        }
-
-        if (PerunSamlUtils.needsReAuthByMfa(request)) {
-            log.debug("ACRs include {}, added forceAuthn to proxy request", REFEDS_MFA);
-            options.setForceAuthN(true);
         }
 
         if (StringUtils.hasText(request.getParameter(PARAM_CLIENT_ID)) && config.isAddClientIdToAcrs()) {
