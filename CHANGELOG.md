@@ -1,3 +1,10 @@
+## [12.0.1](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v12.0.0...v12.0.1) (2022-09-19)
+
+
+### Bug Fixes
+
+* 🐛 Remove forceAuthn for MFA ([e3ff40c](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/commit/e3ff40c91be1e3f74247009b5a4aee8fcd2ed3bd))
+
 # [12.0.0](https://github.com/CESNET/OpenID-Connect-Java-Spring-Server/compare/v11.0.3...v12.0.0) (2022-09-13)
 
 
