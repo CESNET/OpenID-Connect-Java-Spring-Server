@@ -569,6 +569,10 @@
     </bean>
 
     <bean id="samlEntryPoint" class="cz.muni.ics.oidc.saml.PerunSamlEntryPoint">
+        <constructor-arg name="config" ref="perunOidcConfig"/>
+        <constructor-arg name="facilityAttrsConfig" ref="facilityAttrsConfig"/>
+        <constructor-arg name="perunAdapter" ref="perunAdapter"/>
+        <constructor-arg name="samlProperties" ref="samlProperties"/>
         <property name="defaultProfileOptions" ref="webSSOProfileOptions"/>
     </bean>
 
