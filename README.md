@@ -1,5 +1,7 @@
 # MITREid Connect
 
+**REPOSITORY HAS BEEN MOVED TO: https://gitlab.ics.muni.cz/perun-proxy-aai/java/OpenID-Connect-Java-Spring-Server**
+
 This project has been forked from the [MITREid Connect repository](https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server). However, due to split between the paths we want to take with the project, we have decided to remove the fork relationship. All the original code will stay licensed to the original project. We would like to thank the developers of the original project for their work and wish them all the best in its continuation.
 
 ## Contribution
